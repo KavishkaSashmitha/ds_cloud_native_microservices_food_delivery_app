@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-let restaurants = [];
+let restaurants = ['colombo-cafe', 'pizza-hut', 'kfc'];
 
 app.get('/restaurants', (req, res) => {
   res.json(restaurants);

@@ -4,14 +4,29 @@ services:
     build: ./auth-service
     ports:
       - "3000:3000"
+    networks:
+      - food-network
+
   api-gateway:
     build: ./api-gateway
     ports:
       - "8080:8080"
     depends_on:
       - auth-service
+      - restaurant-service
+    networks:
+      - food-network
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+
   restaurant-service:
     build: ./restaurant-service
     ports:
       - "3001:3001"
-  # Add other services (order, payment, etc.) similarly
+    networks:
+      - food-network
+
+networks:
+  food-network:
+    driver: bridge
