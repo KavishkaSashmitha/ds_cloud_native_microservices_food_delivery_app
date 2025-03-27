@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3000:3000"
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+  restaurant-service:
+    build: ./restaurant-service
+    ports:
+      - "3001:3001"
+  # Add other services (order, payment, etc.) similarly
