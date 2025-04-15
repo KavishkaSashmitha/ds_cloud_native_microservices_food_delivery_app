@@ -1,0 +1,65 @@
+.app {
+  padding: 20px;
+}
+
+nav {
+  margin-bottom: 20px;
+}
+
+nav a {
+  margin-right: 20px;
+  text-decoration: none;
+  color: #333;
+}
+
+.restaurant-list {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.search-controls {
+  margin-bottom: 20px;
+}
+
+.search-controls input {
+  margin-right: 10px;
+  padding: 5px;
+}
+
+.restaurants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.restaurant-card {
+  border: 1px solid #ddd;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.restaurant-form {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.restaurant-form input,
+.restaurant-form textarea {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+
+button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
