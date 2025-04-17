@@ -11,10 +11,6 @@ const connectDB = async () => {
       maxPoolSize: 10
     });
 
-    logger.info(`MongoDB Atlas Connected: ${conn.connection.host}`);
-    logger.info(`Database Name: ${conn.connection.name}`);
-    logger.info(`Connection State: ${conn.connection.readyState}`);
-
     // Test the connection with a ping
     await conn.connection.db.admin().ping();
     logger.info('Successfully pinged the database. Connection is working.');
