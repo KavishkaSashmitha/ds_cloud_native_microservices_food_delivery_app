@@ -16,6 +16,16 @@ import {
   type KitchenOrder as KitchenOrderType,
 } from "@/lib/api"
 
+export interface MenuItemCardProps {
+  id: string
+  name?: string
+  price: number
+  image: string
+  isVeg: boolean
+  discount?: number
+  quantity: number
+}
+
 export default function Home() {
   const [categories, setCategories] = useState<Category[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
@@ -106,7 +116,6 @@ export default function Home() {
             {menuItems.map((item) => (
               <MenuItemCard
                 key={item.id}
-                id={item.id}
                 name={item.name}
                 price={item.price}
                 image={item.image}

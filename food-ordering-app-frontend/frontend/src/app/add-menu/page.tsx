@@ -173,7 +173,7 @@ export default function AddMenu() {
           <div>
             <h1 className="text-2xl font-bold">Add New Menu Item</h1>
             <p className="text-gray-500 mt-1">
-              Create a new dish to add to your restaurant's menu.
+              Create a new dish to add to your restaurant&apos;s menu.
             </p>
           </div>
         </div>
