@@ -2,7 +2,6 @@ import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
 
 interface MenuItemCardProps {
-  id: string;
   name: string;
   price: number;
   image: string;
@@ -12,7 +11,6 @@ interface MenuItemCardProps {
 }
 
 const MenuItemCard = ({
-  id,
   name,
   price,
   image,

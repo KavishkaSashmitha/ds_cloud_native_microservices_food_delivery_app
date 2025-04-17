@@ -91,11 +91,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json()
+    const data = await request.json();
 
     // Validate required fields
     if (!data.name || !data.price || !data.category || !data.restaurantId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     // Create new menu item
@@ -109,13 +109,13 @@ export async function POST(request: Request) {
       isVeg: Boolean(data.isVeg),
       discount: Number.parseInt(data.discount) || 0,
       restaurantId: data.restaurantId,
-    }
+    };
 
     // Add to mock database
-    menuItems.push(newMenuItem)
+    menuItems.push(newMenuItem);
 
-    return NextResponse.json(newMenuItem, { status: 201 })
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to create menu item" }, { status: 500 })
+    return NextResponse.json(newMenuItem, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Failed to create menu item" }, { status: 500 });
   }
 }

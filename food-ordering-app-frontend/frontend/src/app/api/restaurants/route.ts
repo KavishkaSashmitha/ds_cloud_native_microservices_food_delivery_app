@@ -19,11 +19,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json()
+    const data = await request.json();
 
     // Validate required fields
     if (!data.name || !data.address || !data.contactNumber || !data.email) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     // Create new restaurant
@@ -34,13 +34,13 @@ export async function POST(request: Request) {
       contactNumber: data.contactNumber,
       email: data.email,
       logo: data.logo || "/placeholder.svg?height=100&width=100",
-    }
+    };
 
     // Add to mock database
-    restaurants.push(newRestaurant)
+    restaurants.push(newRestaurant);
 
-    return NextResponse.json(newRestaurant, { status: 201 })
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to create restaurant" }, { status: 500 })
+    return NextResponse.json(newRestaurant, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Failed to create restaurant" }, { status: 500 });
   }
 }

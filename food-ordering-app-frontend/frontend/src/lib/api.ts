@@ -8,6 +8,7 @@ export interface Restaurant {
   logo: string
   latitude?: number
   longitude?: number
+  phone?: string // Add this line
 }
 
 export interface Category {

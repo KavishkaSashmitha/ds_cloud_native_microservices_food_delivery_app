@@ -257,7 +257,7 @@ export default function RestaurantPage() {
               className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-300 flex flex-col"
             >
               <div className="relative">
-                {item.discount > 0 && (
+                {(item.discount ?? 0) > 0 && (
                   <div className="absolute top-2 left-2 bg-yellow-400 text-black font-medium px-2 py-1 rounded-md text-sm">
                     {item.discount}% Off
                   </div>
