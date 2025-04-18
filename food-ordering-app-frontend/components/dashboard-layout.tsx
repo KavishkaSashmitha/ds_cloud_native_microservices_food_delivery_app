@@ -79,14 +79,14 @@ const navItems: NavItem[] = [
     roles: ["restaurant"],
   },
   {
-    title: "Available Deliveries",
-    href: "/dashboard/available-deliveries",
+    title: "Deliveries",
+    href: "/dashboard/delivery",
     icon: <Truck className="h-5 w-5" />,
     roles: ["delivery"],
   },
   {
-    title: "My Deliveries",
-    href: "/dashboard/my-deliveries",
+    title: "Delivery History",
+    href: "/dashboard/delivery-history",
     icon: <Package className="h-5 w-5" />,
     roles: ["delivery"],
   },

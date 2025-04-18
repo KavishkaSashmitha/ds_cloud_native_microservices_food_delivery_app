@@ -1,42 +1,18 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Clock, MapPin, Navigation, Package, ExternalLink } from "lucide-react";
-import {
-  GoogleMap,
-  Marker,
-  InfoWindow,
-  useLoadScript,
-  DirectionsRenderer,
-} from "@react-google-maps/api";
+import { useState } from "react"
+import { Clock, MapPin, Navigation, Package, Search } from "lucide-react"
 
-import { DashboardLayout } from "@/components/dashboard-layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-
-// Define types
-type Coordinates = {
-  lat: number;
-  lng: number;
-};
-
-type Delivery = {
-  id: string;
-  restaurantName: string;
-  restaurantAddress: string;
-  customerAddress: string;
-  items: string;
-  distance: string;
-  estimatedTime: string;
-  paymentAmount: string;
-  coordinates: Coordinates;
-};
-
-type DirectionsResult = google.maps.DirectionsResult;
+import { DashboardLayout } from "@/components/dashboard-layout"
+import { DeliveryMap } from "@/components/delivery-map"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useToast } from "@/components/ui/use-toast"
 
 // Sample data for available deliveries
-const availableDeliveries: Delivery[] = [
+const availableDeliveries = [
   {
     id: "order-1",
     restaurantName: "Pizza Hut",
@@ -59,272 +35,177 @@ const availableDeliveries: Delivery[] = [
     paymentAmount: "Rs. 1200",
     coordinates: { lat: 6.9101, lng: 79.8528 },
   },
-  // ... add more deliveries as needed
-];
-
-const mapContainerStyle = {
-  width: "100%",
-  height: "400px",
-};
-
-const center: Coordinates = {
-  lat: 6.9271,
-  lng: 79.8612,
-};
+  {
+    id: "order-3",
+    restaurantName: "Burger King",
+    restaurantAddress: "222 Galle Road, Colombo 06",
+    customerAddress: "333 Beach Road, Colombo 04",
+    items: "1x Whopper, 1x Chicken Royale, 2x Fries",
+    distance: "1.8 km",
+    estimatedTime: "10-15 min",
+    paymentAmount: "Rs. 950",
+    coordinates: { lat: 6.9344, lng: 79.8428 },
+  },
+  {
+    id: "order-4",
+    restaurantName: "KFC",
+    restaurantAddress: "555 Liberty Plaza, Colombo 03",
+    customerAddress: "777 Independence Ave, Colombo 07",
+    items: "8pc Bucket, 2x Coleslaw, 1x Large Pepsi",
+    distance: "4.2 km",
+    estimatedTime: "25-30 min",
+    paymentAmount: "Rs. 2200",
+    coordinates: { lat: 6.9165, lng: 79.8487 },
+  },
+]
 
 export default function AvailableDeliveriesPage() {
-  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(
-    null
-  );
-  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
-    null
-  );
-  const [directions, setDirections] = useState<DirectionsResult | null>(null);
-  const { toast } = useToast();
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries: ["places", "drawing", "geometry", "visualization"] as (
-      | "places"
-      | "drawing"
-      | "geometry"
-      | "visualization"
-    )[],
-  });
+  const [selectedDelivery, setSelectedDelivery] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const { toast } = useToast()
 
-  // Get user's current location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting current location:", error);
-          // Fallback location if user denies permission
-          setCurrentLocation({ lat: 6.9165, lng: 79.8473 }); // Default location in Colombo
-          toast({
-            title: "Location Error",
-            description:
-              "Using default location. Please enable location services for better accuracy.",
-            variant: "destructive",
-          });
-        }
-      );
-    }
-  }, [toast]);
-
-  // Get directions when a delivery is selected
-  useEffect(() => {
-    if (selectedDelivery && currentLocation && window.google) {
-      const directionsService = new window.google.maps.DirectionsService();
-
-      directionsService.route(
-        {
-          origin: currentLocation,
-          destination: selectedDelivery.coordinates,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK) {
-            setDirections(result);
-          } else {
-            console.error(`Directions request failed: ${status}`);
-            toast({
-              title: "Route Error",
-              description: "Could not calculate route to this location",
-              variant: "destructive",
-            });
-          }
-        }
-      );
-    }
-  }, [selectedDelivery, currentLocation, toast]);
+  const filteredDeliveries = availableDeliveries.filter(
+    (delivery) =>
+      delivery.restaurantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      delivery.restaurantAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      delivery.customerAddress.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   const handleAcceptDelivery = (deliveryId: string) => {
     toast({
       title: "Delivery Accepted",
-      description: `You have accepted order from ${
-        availableDeliveries.find((d) => d.id === deliveryId)?.restaurantName
-      }.`,
-    });
-  };
-
-  const openInGoogleMaps = (destination: Coordinates) => {
-    if (!currentLocation) return;
-
-    // Format for Google Maps directions URL
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${currentLocation.lat},${currentLocation.lng}&destination=${destination.lat},${destination.lng}&travelmode=driving`;
-
-    // Open in a new tab
-    window.open(url, "_blank");
-  };
-
-  if (loadError) return <div>Error loading maps</div>;
-  if (!isLoaded) return <div>Loading map...</div>;
+      description: `You have accepted order #${deliveryId}. Navigate to the restaurant to pick up the order.`,
+    })
+    // In a real app, you would update the state and make an API call here
+  }
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">Available Deliveries</h1>
-          <p className="text-gray-500">Choose a delivery to accept</p>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">Available Deliveries</h1>
+          <p className="text-muted-foreground">Browse and accept available delivery orders in your area.</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
           {/* Map Section */}
-          <Card>
+          <Card className="order-2 lg:order-1">
             <CardHeader>
               <CardTitle>Delivery Map</CardTitle>
+              <CardDescription>Available orders in your area</CardDescription>
             </CardHeader>
-            <CardContent>
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                zoom={13}
-                center={currentLocation || center}
-              >
-                {/* Current location marker */}
-                {currentLocation && (
-                  <Marker
-                    position={currentLocation}
-                    icon={{
-                      url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                    }}
-                  />
-                )}
-
-                {/* Restaurant markers */}
-                {availableDeliveries.map((delivery) => (
-                  <Marker
-                    key={delivery.id}
-                    position={delivery.coordinates}
-                    onClick={() => setSelectedDelivery(delivery)}
-                    icon={{
-                      url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                    }}
-                  />
-                ))}
-
-                {/* Direction route */}
-                {directions && (
-                  <DirectionsRenderer
-                    directions={directions}
-                    options={{ suppressMarkers: true }}
-                  />
-                )}
-
-                {/* Info window for selected delivery */}
-                {selectedDelivery && (
-                  <InfoWindow
-                    position={selectedDelivery.coordinates}
-                    onCloseClick={() => {
-                      setSelectedDelivery(null);
-                      setDirections(null);
-                    }}
-                  >
-                    <div className="space-y-1">
-                      <h3 className="font-bold">
-                        {selectedDelivery.restaurantName}
-                      </h3>
-                      <p className="text-sm">
-                        {selectedDelivery.distance} away
-                      </p>
-                      <p className="text-sm">
-                        Earn: {selectedDelivery.paymentAmount}
-                      </p>
-                      <div className="flex space-x-2 mt-2">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            handleAcceptDelivery(selectedDelivery.id)
-                          }
-                        >
-                          Accept
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            openInGoogleMaps(selectedDelivery.coordinates)
-                          }
-                        >
-                          <ExternalLink className="w-4 h-4 mr-1" />
-                          Navigate
-                        </Button>
-                      </div>
-                    </div>
-                  </InfoWindow>
-                )}
-              </GoogleMap>
+            <CardContent className="p-0">
+              <DeliveryMap
+                deliveries={availableDeliveries}
+                selectedDeliveryId={selectedDelivery}
+                onMarkerClick={(id) => setSelectedDelivery(id)}
+              />
             </CardContent>
           </Card>
 
           {/* Delivery List Section */}
-          <Card>
+          <Card className="order-1 lg:order-2">
             <CardHeader>
-              <CardTitle>Nearby Orders</CardTitle>
+              <CardTitle>Available Orders</CardTitle>
+              <CardDescription>Orders ready for pickup</CardDescription>
+              <div className="relative mt-2">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search orders..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {availableDeliveries.map((delivery) => (
-                <div
-                  key={delivery.id}
-                  className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                    selectedDelivery?.id === delivery.id
-                      ? "bg-blue-50 border-blue-200"
-                      : ""
-                  }`}
-                  onClick={() => setSelectedDelivery(delivery)}
-                >
-                  <div className="flex justify-between">
-                    <h3 className="font-medium">{delivery.restaurantName}</h3>
-                    <span className="font-bold text-green-600">
-                      {delivery.paymentAmount}
-                    </span>
-                  </div>
-                  <div className="flex items-center mt-1 text-sm text-gray-500">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    <span>{delivery.distance} away</span>
-                  </div>
-                  <div className="flex items-center mt-1 text-sm text-gray-500">
-                    <Clock className="w-4 h-4 mr-1" />
-                    <span>{delivery.estimatedTime}</span>
-                  </div>
-                  <div className="flex items-start mt-2 text-sm text-gray-600">
-                    <Package className="w-4 h-4 mr-2 mt-0.5" />
-                    <span>{delivery.items}</span>
-                  </div>
-                  <div className="flex space-x-2 mt-3">
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAcceptDelivery(delivery.id);
-                      }}
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex items-center"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openInGoogleMaps(delivery.coordinates);
-                      }}
-                    >
-                      <Navigation className="w-4 h-4 mr-1" />
-                      Navigate
-                    </Button>
-                  </div>
+            <CardContent className="max-h-[500px] overflow-y-auto p-0">
+              <Tabs defaultValue="nearby">
+                <div className="px-6 pt-2">
+                  <TabsList className="w-full">
+                    <TabsTrigger value="nearby" className="flex-1">
+                      Nearby
+                    </TabsTrigger>
+                    <TabsTrigger value="best-match" className="flex-1">
+                      Best Match
+                    </TabsTrigger>
+                    <TabsTrigger value="highest-pay" className="flex-1">
+                      Highest Pay
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
-              ))}
+                <TabsContent value="nearby" className="m-0">
+                  <div className="divide-y px-6">
+                    {filteredDeliveries.map((delivery) => (
+                      <div
+                        key={delivery.id}
+                        className={`py-4 ${selectedDelivery === delivery.id ? "bg-muted/50" : ""}`}
+                        onClick={() => setSelectedDelivery(delivery.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-medium">{delivery.restaurantName}</h3>
+                            <div className="mt-1 flex items-center text-sm text-muted-foreground">
+                              <MapPin className="mr-1 h-3 w-3" />
+                              <span>{delivery.distance}</span>
+                              <span className="mx-2">•</span>
+                              <Clock className="mr-1 h-3 w-3" />
+                              <span>{delivery.estimatedTime}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium">{delivery.paymentAmount}</p>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-sm">
+                          <div className="flex items-start">
+                            <Package className="mr-2 mt-0.5 h-3 w-3 text-muted-foreground" />
+                            <span className="text-muted-foreground">{delivery.items}</span>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex justify-end">
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAcceptDelivery(delivery.id)
+                            }}
+                          >
+                            Accept Delivery
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+                <TabsContent value="best-match" className="m-0">
+                  <div className="flex h-40 items-center justify-center text-muted-foreground">
+                    Same orders sorted by best match algorithm
+                  </div>
+                </TabsContent>
+                <TabsContent value="highest-pay" className="m-0">
+                  <div className="flex h-40 items-center justify-center text-muted-foreground">
+                    Same orders sorted by payment amount
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
+            <CardFooter className="flex-col gap-2 border-t bg-muted/50 p-4">
+              <div className="flex w-full items-center justify-between">
+                <span className="text-sm font-medium">Online Status</span>
+                <span className="flex items-center text-sm font-medium text-green-500">
+                  <span className="mr-1.5 h-2 w-2 rounded-full bg-green-500"></span>
+                  Available for Deliveries
+                </span>
+              </div>
+              <Button variant="outline" className="w-full" size="sm">
+                <Navigation className="mr-2 h-4 w-4" />
+                Update Your Location
+              </Button>
+            </CardFooter>
           </Card>
         </div>
       </div>
     </DashboardLayout>
-  );
+  )
 }
