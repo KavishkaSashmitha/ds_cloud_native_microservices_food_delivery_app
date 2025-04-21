@@ -1,152 +1,128 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Bell,
-  ChevronDown,
-  ClipboardList,
-  Home,
+  LayoutDashboard,
+  Store,
+  Package,
+  Clock,
+  Settings,
   LogOut,
   Menu,
-  Package,
-  Settings,
-  ShoppingBag,
-  Store,
-  Truck,
   User,
-  X,
-} from "lucide-react"
+  Bike,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-import { useAuth } from "@/lib/auth-provider"
-import { cn } from "@/lib/utils"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
-
-type NavItem = {
-  title: string
-  href: string
-  icon: React.ReactNode
-  roles: Array<"customer" | "restaurant" | "delivery">
-}
-
-const navItems: NavItem[] = [
+const navItems = [
   {
     title: "Dashboard",
+    icon: <LayoutDashboard className="h-5 w-5" />,
     href: "/dashboard",
-    icon: <Home className="h-5 w-5" />,
-    roles: ["customer", "restaurant", "delivery"],
+    roles: ["CUSTOMER", "RESTAURANT_OWNER", "DELIVERY_PERSON"],
   },
   {
-    title: "Browse Restaurants",
-    href: "/dashboard/restaurants",
-    icon: <Store className="h-5 w-5" />,
-    roles: ["customer"],
-  },
-  {
-    title: "My Orders",
-    href: "/dashboard/orders",
-    icon: <ShoppingBag className="h-5 w-5" />,
-    roles: ["customer"],
-  },
-  {
-    title: "Restaurant Profile",
-    href: "/dashboard/restaurant-profile",
-    icon: <Store className="h-5 w-5" />,
-    roles: ["restaurant"],
-  },
-  {
-    title: "Menu Management",
-    href: "/dashboard/menu",
-    icon: <ClipboardList className="h-5 w-5" />,
-    roles: ["restaurant"],
-  },
-  {
-    title: "Incoming Orders",
-    href: "/dashboard/incoming-orders",
+    title: "Orders",
     icon: <Package className="h-5 w-5" />,
-    roles: ["restaurant"],
+    href: "/dashboard/orders",
+    roles: ["CUSTOMER", "RESTAURANT_OWNER"],
+  },
+  {
+    title: "Order History",
+    icon: <Clock className="h-5 w-5" />,
+    href: "/dashboard/history",
+    roles: ["CUSTOMER", "RESTAURANT_OWNER", "DELIVERY_PERSON"],
+  },
+  {
+    title: "Restaurant Management",
+    icon: <Store className="h-5 w-5" />,
+    href: "/dashboard/restaurant",
+    roles: ["RESTAURANT_OWNER"],
   },
   {
     title: "Deliveries",
+    icon: <Bike className="h-5 w-5" />,
     href: "/dashboard/delivery",
-    icon: <Truck className="h-5 w-5" />,
-    roles: ["delivery"],
+    roles: ["DELIVERY_PERSON"],
   },
   {
-    title: "Delivery History",
-    href: "/dashboard/delivery-history",
-    icon: <Package className="h-5 w-5" />,
-    roles: ["delivery"],
+    title: "Profile",
+    icon: <User className="h-5 w-5" />,
+    href: "/dashboard/profile",
+    roles: ["CUSTOMER", "RESTAURANT_OWNER", "DELIVERY_PERSON"],
   },
   {
     title: "Settings",
-    href: "/dashboard/settings",
     icon: <Settings className="h-5 w-5" />,
-    roles: ["customer", "restaurant", "delivery"],
+    href: "/dashboard/settings",
+    roles: ["CUSTOMER", "RESTAURANT_OWNER", "DELIVERY_PERSON"],
   },
-]
+];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth()
-  const router = useRouter()
-  const pathname = usePathname()
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
+  const { user, logout, loading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   useEffect(() => {
     // Close mobile nav when route changes
-    setIsMobileNavOpen(false)
-  }, [pathname])
+    setIsMobileNavOpen(false);
+  }, [pathname]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!user && !localStorage.getItem("user")) {
-      router.push("/auth/login")
+    if (!loading && !user) {
+      router.push("/auth/login");
     }
-  }, [user, router])
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!user) {
-    return null // Don't render anything while checking authentication
+    return null; // Don't render anything while checking authentication
   }
 
-  const filteredNavItems = navItems.filter((item) => item.roles.includes(user.role))
+  const filteredNavItems = navItems.filter((item) =>
+    item.roles.includes(user.role)
+  );
 
   const handleLogout = () => {
-    logout()
-    router.push("/")
-  }
+    logout();
+  };
 
   const getInitials = (name: string) => {
     return name
       .split(" ")
       .map((n) => n[0])
       .join("")
-      .toUpperCase()
-  }
+      .toUpperCase();
+  };
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case "customer":
-        return "Customer"
-      case "restaurant":
-        return "Restaurant Admin"
-      case "delivery":
-        return "Delivery Personnel"
+      case "CUSTOMER":
+        return "Customer";
+      case "RESTAURANT_OWNER":
+        return "Restaurant Admin";
+      case "DELIVERY_PERSON":
+        return "Delivery Person";
       default:
-        return role
+        return role;
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -154,93 +130,81 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b bg-background">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileNavOpen(true)} className="md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileNavOpen(true)}
+              className="md:hidden"
+            >
               <Menu className="h-6 w-6" />
               <span className="sr-only">Toggle menu</span>
             </Button>
-            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 font-bold text-xl text-primary"
+            >
               <span>FoodExpress</span>
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-primary"></span>
-              <span className="sr-only">Notifications</span>
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative flex items-center gap-2 p-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                  </Avatar>
-                  <div className="hidden flex-col items-start text-sm md:flex">
-                    <span className="font-medium">{user.name}</span>
-                    <span className="text-xs text-muted-foreground">{getRoleLabel(user.role)}</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/profile" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    <span>Settings</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 text-red-500">
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-2">
+              <Avatar>
+                <AvatarFallback>
+                  {user && getInitials(user.username)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden md:block text-sm">
+                <p className="font-medium">{user?.username}</p>
+                <p className="text-muted-foreground text-xs">
+                  {getRoleLabel(user?.role)}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Mobile Navigation */}
       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
+        <SheetTrigger asChild>
+          <span className="sr-only">Open menu</span>
+        </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
           <div className="flex h-16 items-center border-b px-4">
-            <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 font-bold text-xl text-primary"
+              onClick={() => setIsMobileNavOpen(false)}
+            >
               <span>FoodExpress</span>
             </Link>
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileNavOpen(false)} className="ml-auto">
-              <X className="h-5 w-5" />
-              <span className="sr-only">Close</span>
-            </Button>
           </div>
-          <div className="flex flex-col gap-1 p-2">
-            {filteredNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
-                  pathname === item.href
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground",
-                )}
+          <div className="flex h-full flex-col justify-between p-4">
+            <div className="space-y-1">
+              {filteredNavItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
+                    pathname === item.href
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {item.icon}
+                  {item.title}
+                </Link>
+              ))}
+              <Button
+                variant="ghost"
+                className="flex w-full items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 hover:bg-muted"
+                onClick={handleLogout}
               >
-                {item.icon}
-                {item.title}
-              </Link>
-            ))}
-            <Button
-              variant="ghost"
-              className="flex w-full items-center justify-start gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 hover:bg-muted"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-              Logout
-            </Button>
+                <LogOut className="h-5 w-5" />
+                Logout
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -257,7 +221,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
                   pathname === item.href
                     ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
                 )}
               >
                 {item.icon}
@@ -277,9 +241,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="container p-4 md:p-6">{children}</div>
+          <div className="container py-6 px-4 md:px-6">{children}</div>
         </main>
       </div>
     </div>
-  )
+  );
 }
