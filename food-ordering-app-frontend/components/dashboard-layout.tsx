@@ -46,6 +46,22 @@ const navItems = [
     roles: ["RESTAURANT_OWNER"],
   },
   {
+    title: "Menu Management",
+    href: "/dashboard/menu-management",
+    icon: <ClipboardList className="h-5 w-5" />,
+    roles: ["restaurant"],
+  },
+  {
+    title: "Menu Categories",
+    href: "/dashboard/menu-categories",
+    icon: <ClipboardList className="h-5 w-5" />,
+    roles: ["restaurant"],
+  },
+  {
+    title: "Incoming Orders",
+    href: "/dashboard/incoming-orders",
+    icon: <Package className="h-5 w-5" />,
+    roles: ["restaurant"],
     title: "Deliveries",
     icon: <Bike className="h-5 w-5" />,
     href: "/dashboard/delivery",
