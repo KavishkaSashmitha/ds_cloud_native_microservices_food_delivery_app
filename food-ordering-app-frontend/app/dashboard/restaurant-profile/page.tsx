@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRestaurantData } from "@/lib/data-context";
 import { toast } from "@/components/ui/use-toast";
 import { TimeInput } from "@/components/time-input";
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface BusinessHour {
   day: string;

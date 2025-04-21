@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Category {
   id: string;
@@ -63,6 +64,7 @@ export function MenuItemForm({
   });
 
   const [newOption, setNewOption] = useState("");
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (initialData) {
@@ -185,6 +187,7 @@ export function MenuItemForm({
               placeholder="Describe your menu item"
               value={formData.description}
               onChange={handleChange}
+              rows={isMobile ? 3 : 4}
             />
           </div>
 
@@ -251,7 +254,9 @@ export function MenuItemForm({
                   />
                   <Button variant="outline" size="sm" onClick={handleAddOption}>
                     <Plus className="h-4 w-4" />
+                    <span className={isMobile ? "sr-only" : "ml-1"}>
                     Add
+                    </span>
                   </Button>
                 </div>
               </div>

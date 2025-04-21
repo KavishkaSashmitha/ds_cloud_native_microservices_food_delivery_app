@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRestaurantData } from "@/lib/data-context";
 import { toast } from "@/components/ui/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface Category {
   id: string;
@@ -52,6 +53,7 @@ export function CategoryManagement() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
+  const isMobile = useIsMobile()
 
   const handleAddCategory = () => {
     if (!newCategory.name) {
@@ -125,7 +127,9 @@ export function CategoryManagement() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
+              <span className={isMobile ? "sr-only" : ""}>
               Add Category
+              </span>
             </Button>
           </DialogTrigger>
           <DialogContent>

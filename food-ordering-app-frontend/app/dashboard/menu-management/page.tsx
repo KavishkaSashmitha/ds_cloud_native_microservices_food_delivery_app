@@ -29,6 +29,7 @@ import { toast } from "@/components/ui/use-toast";
 import { MenuItemCard } from "@/components/menu-item-card";
 import { MenuItemForm } from "@/components/menu-item-form";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface MenuItem {
   id: string;
@@ -68,6 +69,7 @@ export default function MenuManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const isMobile = useIsMobile()
 
   // Form states
   const [newCategory, setNewCategory] = useState<
@@ -186,7 +188,9 @@ export default function MenuManagement() {
               <DialogTrigger asChild>
                 <Button variant="outline">
                   <FolderPlus className="mr-2 h-4 w-4" />
+                  <span className={isMobile ? "sr-only" : ""}>
                   Add Category
+                  </span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -244,7 +248,9 @@ export default function MenuManagement() {
               <DialogTrigger asChild>
                 <Button>
                   <FilePlus className="mr-2 h-4 w-4" />
+                  <span className={isMobile ? "sr-only" : ""}>
                   Add Menu Item
+                  </span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">

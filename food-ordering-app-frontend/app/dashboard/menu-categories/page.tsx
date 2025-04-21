@@ -1,8 +1,10 @@
 "use client"
 import { CategoryManagement } from "@/components/category-management"
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 export default function MenuCategories() {
+  const isMobile = useIsMobile()
   return (
   <DashboardLayout>
     <div className="container mx-auto p-6">

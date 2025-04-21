@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface MenuItem {
   id: string;
@@ -54,6 +55,7 @@ export function MenuItemCard({
   onToggleAvailability,
 }: MenuItemCardProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const isMobile = useIsMobile()
 
   return (
     <>
