@@ -1,12 +1,13 @@
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
   useState,
   useEffect,
   ReactNode,
 } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   generateRestaurantData,
   type OrderStatus,
@@ -32,7 +33,7 @@ export interface Category {
 }
 
 export interface RestaurantProfile {
-  id: string; // Add this field
+  id: string;
   name: string;
   description: string;
   cuisine: string;
@@ -51,7 +52,7 @@ export interface RestaurantProfile {
   }[];
   deliveryFee: number;
   minimumOrder: number;
-  preparationTime: string; // Change from number to string
+  preparationTime: string;
   deliveryRadius: number;
 }
 
@@ -74,180 +75,142 @@ export interface Order {
   paymentStatus: string;
 }
 
-interface RestaurantDataContextType {
-  profile: RestaurantProfile;
+interface RestaurantContextType {
+  restaurant: RestaurantProfile | null;
+  menu: MenuItem[];
   categories: Category[];
-  menuItems: MenuItem[];
   orders: Order[];
   loading: boolean;
-  // Methods for updating data
-  updateProfile: (data: Partial<RestaurantProfile>) => Promise<void>;
-  addCategory: (category: Category) => void;
-  updateCategory: (id: string, data: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
-  addMenuItem: (item: MenuItem) => void;
-  updateMenuItem: (id: string, data: Partial<MenuItem>) => void;
-  deleteMenuItem: (id: string) => void;
-  updateOrderStatus: (id: string, status: OrderStatus) => void;
+  error: string | null;
+  addMenuItem: (item: MenuItem) => Promise<void>;
+  updateMenuItem: (id: string, data: Partial<MenuItem>) => Promise<void>;
+  deleteMenuItem: (id: string) => Promise<void>;
+  addCategory: (category: Category) => Promise<void>;
+  updateCategory: (id: string, data: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  updateOrder: (id: string, data: Partial<Order>) => Promise<void>;
+  updateOrderStatus: (id: string, status: OrderStatus) => Promise<void>;
+  updateRestaurantProfile: (data: Partial<RestaurantProfile>) => Promise<void>;
   refreshData: () => void;
 }
 
-// Create the context
-const RestaurantContext = createContext<RestaurantDataContextType | undefined>(
-  undefined
-);
+// Create the context with default values
+const RestaurantContext = createContext<RestaurantContextType>({
+  restaurant: null,
+  menu: [],
+  categories: [],
+  orders: [],
+  loading: true,
+  error: null,
+  addMenuItem: async () => {},
+  updateMenuItem: async () => {},
+  deleteMenuItem: async () => {},
+  addCategory: async () => {},
+  updateCategory: async () => {},
+  deleteCategory: async () => {},
+  updateOrder: async () => {},
+  updateOrderStatus: async () => {},
+  updateRestaurantProfile: async () => {},
+  refreshData: () => {},
+});
 
 // Provider component
 export function RestaurantProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<{
-    profile: RestaurantProfile;
-    categories: Category[];
-    menuItems: MenuItem[];
-    orders: Order[];
-  } | null>(null);
+  const [restaurant, setRestaurant] = useState<RestaurantProfile | null>(null);
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize data
   useEffect(() => {
-    // Simulate API call delay
     const timer = setTimeout(() => {
-      setData(generateRestaurantData());
+      const data = generateRestaurantData();
+      setRestaurant(data.profile);
+      setMenu(data.menuItems);
+      setCategories(data.categories);
+      setOrders(data.orders);
       setLoading(false);
     }, 500);
 
     return () => clearTimeout(timer);
   }, []);
 
-  // Methods for updating data
-  const updateProfile = async (newProfileData: Partial<RestaurantProfile>) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        profile: {
-          ...prev.profile,
-          ...newProfileData,
-        },
-      };
-    });
+  const addMenuItem = async (item: MenuItem) => {
+    setMenu((prev) => [...prev, item]);
   };
 
-  const addCategory = (category: Category) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        categories: [...prev.categories, category],
-      };
-    });
+  const updateMenuItem = async (id: string, data: Partial<MenuItem>) => {
+    setMenu((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...data } : item))
+    );
   };
 
-  const updateCategory = (id: string, categoryData: Partial<Category>) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        categories: prev.categories.map((cat) =>
-          cat.id === id ? { ...cat, ...categoryData } : cat
-        ),
-      };
-    });
+  const deleteMenuItem = async (id: string) => {
+    setMenu((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const deleteCategory = (id: string) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        categories: prev.categories.filter((cat) => cat.id !== id),
-        menuItems: prev.menuItems.filter((item) => item.category !== id),
-      };
-    });
+  const addCategory = async (category: Category) => {
+    setCategories((prev) => [...prev, category]);
   };
 
-  const addMenuItem = (item: MenuItem) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        menuItems: [...prev.menuItems, item],
-      };
-    });
+  const updateCategory = async (id: string, data: Partial<Category>) => {
+    setCategories((prev) =>
+      prev.map((cat) => (cat.id === id ? { ...cat, ...data } : cat))
+    );
   };
 
-  const updateMenuItem = (id: string, itemData: Partial<MenuItem>) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        menuItems: prev.menuItems.map((item) =>
-          item.id === id ? { ...item, ...itemData } : item
-        ),
-      };
-    });
+  const deleteCategory = async (id: string) => {
+    setCategories((prev) => prev.filter((cat) => cat.id !== id));
+    setMenu((prev) => prev.filter((item) => item.category !== id));
   };
 
-  const deleteMenuItem = (id: string) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        menuItems: prev.menuItems.filter((item) => item.id !== id),
-      };
-    });
+  const updateOrder = async (id: string, data: Partial<Order>) => {
+    setOrders((prev) =>
+      prev.map((order) => (order.id === id ? { ...order, ...data } : order))
+    );
   };
 
-  const updateOrderStatus = (id: string, status: OrderStatus) => {
-    setData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        orders: prev.orders.map((order) =>
-          order.id === id ? { ...order, status } : order
-        ),
-      };
-    });
+  const updateOrderStatus = async (id: string, status: OrderStatus) => {
+    setOrders((prev) =>
+      prev.map((order) => (order.id === id ? { ...order, status } : order))
+    );
   };
 
-  // Refresh all data (simulate API refresh)
+  const updateRestaurantProfile = async (data: Partial<RestaurantProfile>) => {
+    setRestaurant((prev) => (prev ? { ...prev, ...data } : null));
+  };
+
   const refreshData = () => {
     setLoading(true);
     setTimeout(() => {
-      setData(generateRestaurantData());
+      const data = generateRestaurantData();
+      setRestaurant(data.profile);
+      setMenu(data.menuItems);
+      setCategories(data.categories);
+      setOrders(data.orders);
       setLoading(false);
     }, 500);
   };
 
-  // If data is not loaded yet, return a loading state
-  if (loading || !data) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Loading restaurant data...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <RestaurantContext.Provider
       value={{
-        profile: data.profile,
-        categories: data.categories,
-        menuItems: data.menuItems,
-        orders: data.orders,
+        restaurant,
+        menu,
+        categories,
+        orders,
         loading,
-        updateProfile,
-        addCategory,
-        updateCategory,
-        deleteCategory,
+        error,
         addMenuItem,
         updateMenuItem,
         deleteMenuItem,
+        addCategory,
+        updateCategory,
+        deleteCategory,
+        updateOrder,
         updateOrderStatus,
+        updateRestaurantProfile,
         refreshData,
       }}
     >
@@ -256,10 +219,10 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Custom hook for using the context
+// Custom hook to use the restaurant context
 export function useRestaurantData() {
   const context = useContext(RestaurantContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error(
       "useRestaurantData must be used within a RestaurantProvider"
     );

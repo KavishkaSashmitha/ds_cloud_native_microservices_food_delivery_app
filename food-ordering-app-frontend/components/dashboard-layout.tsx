@@ -17,6 +17,7 @@ import {
   Menu,
   User,
   Bike,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,19 +53,15 @@ const navItems = [
     roles: ["restaurant"],
   },
   {
-    title: "Menu Categories",
-    href: "/dashboard/menu-categories",
-    icon: <ClipboardList className="h-5 w-5" />,
-    roles: ["restaurant"],
-  },
-  {
     title: "Incoming Orders",
     href: "/dashboard/incoming-orders",
     icon: <Package className="h-5 w-5" />,
     roles: ["restaurant"],
+  },
+  {
     title: "Deliveries",
-    icon: <Bike className="h-5 w-5" />,
     href: "/dashboard/delivery",
+    icon: <Bike className="h-5 w-5" />,
     roles: ["DELIVERY_PERSON"],
   },
   {
@@ -94,10 +91,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    if (!user) {
       router.push("/auth/login");
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
   // Remove loading state handling if not provided by useAuth
 

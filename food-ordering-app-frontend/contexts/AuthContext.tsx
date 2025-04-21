@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       case "RESTAURANT_OWNER":
         return "/dashboard/restaurant";
       case "DELIVERY_PERSON":
-        return "/dashboard/delivery";
+        return "/dashboard/delivery-person";
       default:
         return "/dashboard";
     }
