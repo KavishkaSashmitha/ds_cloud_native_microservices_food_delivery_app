@@ -66,7 +66,7 @@ const navItems = [
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout, loading } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -83,13 +83,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router]);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Remove loading state handling if not provided by useAuth
 
   if (!user) {
     return null; // Don't render anything while checking authentication
