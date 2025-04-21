@@ -17,56 +17,114 @@ import {
   Menu,
   User,
   Bike,
+  Utensils,
+  FileText,
+  BarChart3,
+  ShoppingBag,
+  Heart,
+  CreditCard,
+  MapPin,
+  Navigation,
+  History,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Define navigation items with proper role restrictions
 const navItems = [
+  // Common items for all roles
   {
     title: "Dashboard",
     icon: <LayoutDashboard className="h-5 w-5" />,
     href: "/dashboard",
     roles: ["CUSTOMER", "RESTAURANT_OWNER", "DELIVERY_PERSON"],
   },
+
+  // Customer-specific items
   {
-    title: "Orders",
-    icon: <Package className="h-5 w-5" />,
-    href: "/dashboard/orders",
-    roles: ["CUSTOMER", "RESTAURANT_OWNER"],
+    title: "My Orders",
+    icon: <ShoppingBag className="h-5 w-5" />,
+    href: "/dashboard/customer/orders",
+    roles: ["CUSTOMER"],
   },
   {
-    title: "Order History",
-    icon: <Clock className="h-5 w-5" />,
-    href: "/dashboard/history",
-    roles: ["CUSTOMER", "RESTAURANT_OWNER", "DELIVERY_PERSON"],
+    title: "Favorites",
+    icon: <Heart className="h-5 w-5" />,
+    href: "/dashboard/customer/favorites",
+    roles: ["CUSTOMER"],
   },
   {
-    title: "Restaurant Management",
+    title: "Addresses",
+    icon: <MapPin className="h-5 w-5" />,
+    href: "/dashboard/customer/addresses",
+    roles: ["CUSTOMER"],
+  },
+  {
+    title: "Payment Methods",
+    icon: <CreditCard className="h-5 w-5" />,
+    href: "/dashboard/customer/payment",
+    roles: ["CUSTOMER"],
+  },
+
+  // Restaurant Owner items
+  {
+    title: "Restaurant Profile",
     icon: <Store className="h-5 w-5" />,
-    href: "/dashboard/restaurant",
+    href: "/dashboard/restaurant/restaurant-profile",
     roles: ["RESTAURANT_OWNER"],
   },
   {
     title: "Menu Management",
-    href: "/dashboard/menu-management",
-    icon: <ClipboardList className="h-5 w-5" />,
-    roles: ["restaurant"],
+    icon: <Utensils className="h-5 w-5" />,
+    href: "/dashboard/restaurant/menu-management",
+    roles: ["RESTAURANT_OWNER"],
   },
   {
-    title: "Menu Categories",
-    href: "/dashboard/menu-categories",
-    icon: <ClipboardList className="h-5 w-5" />,
-    roles: ["restaurant"],
+    title: "Orders",
+    icon: <FileText className="h-5 w-5" />,
+    href: "/dashboard/restaurant/incoming-orders",
+    roles: ["RESTAURANT_OWNER"],
   },
   {
-    title: "Incoming Orders",
-    href: "/dashboard/incoming-orders",
-    icon: <Package className="h-5 w-5" />,
-    roles: ["restaurant"],
-    title: "Deliveries",
-    icon: <Bike className="h-5 w-5" />,
-    href: "/dashboard/delivery",
+    title: "Analytics",
+    icon: <BarChart3 className="h-5 w-5" />,
+    href: "/dashboard/restaurant/analytics",
+    roles: ["RESTAURANT_OWNER"],
+  },
+  {
+    title: "Notifications",
+    icon: <Bell className="h-5 w-5" />,
+    href: "/dashboard/restaurant/notifications",
+    roles: ["RESTAURANT_OWNER"],
+  },
+
+  // Delivery Person items
+  {
+    title: "Available Orders",
+    icon: <Navigation className="h-5 w-5" />,
+    href: "/dashboard/delivery/available-deliveries",
     roles: ["DELIVERY_PERSON"],
   },
+  {
+    title: "Active Deliveries",
+    icon: <Bike className="h-5 w-5" />,
+    href: "/dashboard/delivery/active-deliveries",
+    roles: ["DELIVERY_PERSON"],
+  },
+  {
+    title: "Delivery Map",
+    icon: <MapPin className="h-5 w-5" />,
+    href: "/dashboard/delivery/map",
+    roles: ["DELIVERY_PERSON"],
+  },
+  {
+    title: "Delivery History",
+    icon: <History className="h-5 w-5" />,
+    href: "/dashboard/delivery/delivery-history",
+    roles: ["DELIVERY_PERSON"],
+  },
+
+  // Common items at the end
   {
     title: "Profile",
     icon: <User className="h-5 w-5" />,
@@ -82,7 +140,7 @@ const navItems = [
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -94,17 +152,27 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !user) {
       router.push("/auth/login");
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
-  // Remove loading state handling if not provided by useAuth
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return null; // Don't render anything while checking authentication
   }
 
+  // Filter navigation items based on user role
   const filteredNavItems = navItems.filter((item) =>
     item.roles.includes(user.role)
   );
@@ -126,11 +194,25 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       case "CUSTOMER":
         return "Customer";
       case "RESTAURANT_OWNER":
-        return "Restaurant Admin";
+        return "Restaurant Owner";
       case "DELIVERY_PERSON":
         return "Delivery Person";
       default:
         return role;
+    }
+  };
+
+  // Determine dashboard home based on role
+  const getDashboardHome = () => {
+    switch (user.role) {
+      case "RESTAURANT_OWNER":
+        return "/dashboard/restaurant";
+      case "DELIVERY_PERSON":
+        return "/dashboard/delivery-person";
+      case "CUSTOMER":
+        return "/dashboard/customer";
+      default:
+        return "/dashboard";
     }
   };
 
@@ -150,10 +232,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <span className="sr-only">Toggle menu</span>
             </Button>
             <Link
-              href="/dashboard"
+              href={getDashboardHome()}
               className="flex items-center gap-2 font-bold text-xl text-primary"
             >
               <span>FoodExpress</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                {getRoleLabel(user.role)}
+              </span>
             </Link>
           </div>
           <div className="flex items-center gap-4">
@@ -170,6 +255,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 </p>
               </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="hidden md:flex"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="sr-only">Logout</span>
+            </Button>
           </div>
         </div>
       </header>
@@ -182,7 +276,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <SheetContent side="left" className="w-64 p-0">
           <div className="flex h-16 items-center border-b px-4">
             <Link
-              href="/dashboard"
+              href={getDashboardHome()}
               className="flex items-center gap-2 font-bold text-xl text-primary"
               onClick={() => setIsMobileNavOpen(false)}
             >
@@ -197,10 +291,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
-                    pathname === item.href
+                    pathname === item.href ||
+                      pathname.startsWith(`${item.href}/`)
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   )}
+                  onClick={() => setIsMobileNavOpen(false)}
                 >
                   {item.icon}
                   {item.title}
@@ -229,7 +325,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
-                  pathname === item.href
+                  pathname === item.href || pathname.startsWith(`${item.href}/`)
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-muted text-muted-foreground hover:text-foreground"
                 )}

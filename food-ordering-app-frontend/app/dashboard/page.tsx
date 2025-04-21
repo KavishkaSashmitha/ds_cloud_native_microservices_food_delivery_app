@@ -1,46 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
-export default function Dashboard() {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user !== undefined) {
-      setLoading(false);
-    }
-  }, [user]);
+export default function DashboardPage() {
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) {
-      // Redirect to role-specific dashboard if they're on the generic one
-      if (user.role === "RESTAURANT_OWNER") {
-        router.push("/dashboard/restaurant");
-      } else if (user.role === "DELIVERY_PERSON") {
-        router.push("/dashboard/delivery");
-      }
+    if (!isLoading && user) {
+      // Redirect based on user role
+      const dashboardPath =
+        user.role === "RESTAURANT_OWNER"
+          ? "/dashboard/restaurant"
+          : user.role === "DELIVERY_PERSON"
+          ? "/dashboard/delivery-person"
+          : "/dashboard/customer";
+
+      router.push(dashboardPath);
     }
-  }, [user, loading, router]);
+  }, [user, isLoading, router]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    // If not logged in, redirect to login page
-    router.push("/auth/login");
-    return null;
-  }
-
+  // Show loading while redirecting
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Customer Dashboard</h1>
-      <p>Welcome, {user.username}!</p>
-      {/* Add customer dashboard content here */}
+    <div className="flex h-80 items-center justify-center">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <h2 className="text-xl font-semibold">
+          Redirecting to your dashboard...
+        </h2>
+        <p className="text-muted-foreground">
+          Please wait while we load your personalized dashboard
+        </p>
+      </div>
     </div>
   );
 }
