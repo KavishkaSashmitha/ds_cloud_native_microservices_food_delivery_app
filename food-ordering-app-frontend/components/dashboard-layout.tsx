@@ -68,7 +68,13 @@ const navItems: NavItem[] = [
   },
   {
     title: "Menu Management",
-    href: "/dashboard/menu",
+    href: "/dashboard/menu-management",
+    icon: <ClipboardList className="h-5 w-5" />,
+    roles: ["restaurant"],
+  },
+  {
+    title: "Menu Categories",
+    href: "/dashboard/menu-categories",
     icon: <ClipboardList className="h-5 w-5" />,
     roles: ["restaurant"],
   },
