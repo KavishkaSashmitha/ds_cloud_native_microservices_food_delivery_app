@@ -1,63 +1,63 @@
 const express = require('express');
 const router = express.Router();
 const restaurantController = require('../controllers/restaurantController');
-const authMiddleware = require('../middlewares/authMiddleware');
+const { authenticate, isRestaurantOwner } = require('../middlewares/authMiddleware');
+const {
+  validateRestaurantData,
+  validateBusinessHours,
+  validateDeliverySettings
+} = require('../middlewares/validationMiddleware');
 
-// Public routes
-router.get('/search', restaurantController.searchRestaurants);
+// Apply authentication middleware to all routes
+router.use(authenticate);
 
-// Protected routes
+// Apply restaurant owner check to all routes
+router.use(isRestaurantOwner);
+
+// Create restaurant
 router.post(
-  '/restaurants', 
-  authMiddleware.authenticate,
-  authMiddleware.restrictTo('restaurant_admin'),
+  '/',
+  validateRestaurantData,
   restaurantController.createRestaurant
 );
 
+// Get restaurant profile
 router.get(
-  '/restaurants/:restaurantId',
-  restaurantController.getRestaurantDetails
+  '/profile',
+  restaurantController.getRestaurantProfile
 );
 
+// Update restaurant profile
 router.put(
-  '/restaurants/:restaurantId',
-  authMiddleware.authenticate,
-  authMiddleware.restrictTo('restaurant_admin'),
+  '/profile',
+  validateRestaurantData,
   restaurantController.updateRestaurant
 );
 
-router.delete(
-  '/restaurants/:restaurantId',
-  authMiddleware.authenticate,
-  authMiddleware.restrictTo('restaurant_admin'),
-  restaurantController.deleteRestaurant
-);
-
-router.post(
-  '/restaurants/:restaurantId/menu-items',
-  authMiddleware.authenticate,
-  authMiddleware.restrictTo('restaurant_admin'),
-  restaurantController.addMenuItem
-);
-
+// Update business hours
 router.put(
-  '/restaurants/:restaurantId/menu-items/:itemId',
-  authMiddleware.authenticate,
-  authMiddleware.restrictTo('restaurant_admin'),
-  restaurantController.updateMenuItem
+  '/business-hours',
+  validateBusinessHours,
+  restaurantController.updateBusinessHours
 );
 
+// Update delivery settings
+router.put(
+  '/delivery-settings',
+  validateDeliverySettings,
+  restaurantController.updateDeliverySettings
+);
+
+// Toggle restaurant open/closed status
+router.patch(
+  '/toggle-status',
+  restaurantController.toggleRestaurantStatus
+);
+
+// Delete restaurant
 router.delete(
-  '/restaurants/:restaurantId/menu-items/:itemId',
-  authMiddleware.authenticate,
-  authMiddleware.restrictTo('restaurant_admin'),
-  restaurantController.deleteMenuItem
-);
-
-router.post(
-  '/restaurants/:restaurantId/reviews',
-  authMiddleware.authenticate,
-  restaurantController.addReview
+  '/',
+  restaurantController.deleteRestaurant
 );
 
 module.exports = router;

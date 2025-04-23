@@ -1,107 +1,124 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const RestaurantSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
+const restaurantSchema = new Schema({
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  name: {
+    type: String,
     required: [true, 'Restaurant name is required'],
+    trim: true,
+    minlength: [3, 'Restaurant name must be at least 3 characters']
+  },
+  description: {
+    type: String,
+    required: [true, 'Description is required'],
     trim: true
   },
-  owner: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
-    required: true 
-  },
-  address: { 
-    type: String, 
-    required: [true, 'Restaurant address is required']
-  },
-  cuisine: { 
-    type: String, 
-    enum: ['Italian', 'Chinese', 'Indian', 'Fast Food', 'Vegetarian', 'Other']
-  },
-  isAvailable: { 
-    type: Boolean, 
-    default: true 
-  },
-  operatingHours: {
-    open: String,
-    close: String
-  },
-  location: {
-    type: {
-      type: String,
-      enum: ['Point'],
-      default: 'Point'
-    },
-    coordinates: {
-      type: [Number],
-      required: true
-    }
-  },
-  contactNumber: {
+  cuisine: {
     type: String,
-    required: [true, 'Contact number is required']
+    required: [true, 'Cuisine type is required'],
+    trim: true
   },
-  averageRating: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 5
+  priceRange: {
+    type: String,
+    enum: ['$', '$$', '$$$', '$$$$'],
+    default: '$$'
   },
-  reviews: [{
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+  address: {
+    street: {
+      type: String,
+      required: [true, 'Street address is required']
+    },
+    city: {
+      type: String,
+      required: [true, 'City is required']
+    },
+    state: {
+      type: String,
+      required: [true, 'State is required']
+    },
+    zipCode: {
+      type: String,
+      required: [true, 'Zip code is required']
+    }
+  },
+  contact: {
+    phone: {
+      type: String,
+      required: [true, 'Phone number is required']
+    },
+    email: {
+      type: String,
+      required: [true, 'Email is required']
+    }
+  },
+  businessHours: [{
+    day: {
+      type: String,
+      enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
       required: true
     },
-    rating: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 5
+    open: {
+      type: String,
+      required: true
     },
-    comment: String,
-    createdAt: {
-      type: Date,
-      default: Date.now
+    close: {
+      type: String,
+      required: true
+    },
+    isOpen: {
+      type: Boolean,
+      default: true
     }
   }],
-  menuItems: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'MenuItem'
-  }],
-  deliveryRadius: {
-    type: Number,
-    required: true,
-    default: 5 // in kilometers
+  deliverySettings: {
+    deliveryFee: {
+      type: Number,
+      default: 0
+    },
+    minimumOrder: {
+      type: Number,
+      default: 0
+    },
+    deliveryRadius: {
+      type: Number,
+      default: 5
+    },
+    preparationTime: {
+      type: String,
+      default: '15-30'
+    }
+  },
+  logo: {
+    type: String,
+    default: ''
+  },
+  banner: {
+    type: String,
+    default: ''
+  },
+  isOpen: {
+    type: Boolean,
+    default: true
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, { 
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+}, {
+  timestamps: true
 });
 
-// Add index for location-based queries
-RestaurantSchema.index({ location: '2dsphere' });
-
-// Virtual to calculate total menu items
-RestaurantSchema.virtual('totalMenuItems').get(function() {
-  return this.menuItems ? this.menuItems.length : 0;
-});
-
-// Method to calculate average rating
-RestaurantSchema.methods.calculateAverageRating = function() {
-  if (this.reviews.length === 0) return 0;
-  const sum = this.reviews.reduce((acc, review) => acc + review.rating, 0);
-  return (sum / this.reviews.length).toFixed(1);
-};
-
-// Pre-save middleware to update average rating
-RestaurantSchema.pre('save', function(next) {
-  if (this.isModified('reviews')) {
-    this.averageRating = this.calculateAverageRating();
-  }
-  next();
-});
-
-module.exports = mongoose.model('Restaurant', RestaurantSchema);
+module.exports = mongoose.model('Restaurant', restaurantSchema);
