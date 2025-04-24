@@ -1,161 +1,186 @@
-const RestaurantService = require('../services/restaurantService');
+const restaurantService = require('../services/restaurantService');
+const { successResponse } = require('../utils/responseHandler');
 const logger = require('../config/logger');
 
+/**
+ * Restaurant Controller - Handles HTTP requests for restaurant operations
+ */
 class RestaurantController {
-  async createRestaurant(req, res) {
+  /**
+   * Create a new restaurant
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async createRestaurant(req, res, next) {
     try {
-      const restaurant = await RestaurantService.createRestaurant(req.body);
-      res.status(201).json({
-        message: 'Restaurant created successfully',
-        restaurant
-      });
+      const userId = req.user.id;
+      const restaurantData = req.body;
+      
+      const restaurant = await restaurantService.createRestaurant(restaurantData, userId);
+      
+      return successResponse(res, 201, 'Restaurant created successfully', restaurant);
     } catch (error) {
-      logger.error('Restaurant creation failed:', error);
-      res.status(400).json({ 
-        message: 'Restaurant creation failed', 
-        error: error.message 
-      });
+      logger.error(`Error creating restaurant: ${error.message}`);
+      next(error);
     }
   }
 
-  async addMenuItem(req, res) {
+  /**
+   * Get restaurant profile
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async getRestaurantProfile(req, res, next) {
     try {
-      const { restaurantId } = req.params;
-      const menuItem = req.body;
-      const updatedRestaurant = await RestaurantService.addMenuItem(restaurantId, menuItem);
-      res.status(200).json({
-        message: 'Menu item added successfully',
-        restaurant: updatedRestaurant
-      });
+      const userId = req.user.id;
+      
+      const restaurant = await restaurantService.getRestaurantByOwner(userId);
+      
+      return successResponse(res, 200, 'Restaurant profile retrieved successfully', restaurant);
     } catch (error) {
-      logger.error('Adding menu item failed:', error);
-      res.status(400).json({ 
-        message: 'Failed to add menu item', 
-        error: error.message 
-      });
+      logger.error(`Error retrieving restaurant profile: ${error.message}`);
+      next(error);
     }
   }
 
-  async updateMenuItem(req, res) {
+  /**
+   * Get restaurant by ID
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async getRestaurantById(req, res, next) {
     try {
-      const { restaurantId, itemId } = req.params;
+      const { id } = req.params;
+      const userId = req.user.id;
+      
+      const restaurant = await restaurantService.getRestaurantById(id, userId);
+      
+      return successResponse(res, 200, 'Restaurant retrieved successfully', restaurant);
+    } catch (error) {
+      logger.error(`Error retrieving restaurant: ${error.message}`);
+      next(error);
+    }
+  }
+
+  /**
+   * Update restaurant profile
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async updateRestaurant(req, res, next) {
+    try {
+      const userId = req.user.id;
+      const restaurant = await restaurantService.getRestaurantByOwner(userId);
       const updateData = req.body;
-      const updatedRestaurant = await RestaurantService.updateMenuItem(restaurantId, itemId, updateData);
-      res.status(200).json({
-        message: 'Menu item updated successfully',
-        restaurant: updatedRestaurant
-      });
+      
+      const updatedRestaurant = await restaurantService.updateRestaurant(
+        restaurant._id,
+        updateData,
+        userId
+      );
+      
+      return successResponse(res, 200, 'Restaurant updated successfully', updatedRestaurant);
     } catch (error) {
-      logger.error('Updating menu item failed:', error);
-      res.status(400).json({
-        message: 'Failed to update menu item',
-        error: error.message
-      });
+      logger.error(`Error updating restaurant: ${error.message}`);
+      next(error);
     }
   }
 
-  async deleteMenuItem(req, res) {
+  /**
+   * Update business hours
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async updateBusinessHours(req, res, next) {
     try {
-      const { restaurantId, itemId } = req.params;
-      await RestaurantService.deleteMenuItem(restaurantId, itemId);
-      res.status(200).json({
-        message: 'Menu item deleted successfully'
-      });
+      const userId = req.user.id;
+      const restaurant = await restaurantService.getRestaurantByOwner(userId);
+      const { businessHours } = req.body;
+      
+      const updatedRestaurant = await restaurantService.updateBusinessHours(
+        restaurant._id,
+        businessHours,
+        userId
+      );
+      
+      return successResponse(res, 200, 'Business hours updated successfully', updatedRestaurant);
     } catch (error) {
-      logger.error('Deleting menu item failed:', error);
-      res.status(400).json({
-        message: 'Failed to delete menu item',
-        error: error.message
-      });
+      logger.error(`Error updating business hours: ${error.message}`);
+      next(error);
     }
   }
 
-  async addReview(req, res) {
+  /**
+   * Update delivery settings
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async updateDeliverySettings(req, res, next) {
     try {
-      const { restaurantId } = req.params;
-      const reviewData = {
-        ...req.body,
-        userId: req.user._id,
-        createdAt: new Date()
-      };
-      const updatedRestaurant = await RestaurantService.addReview(restaurantId, reviewData);
-      res.status(201).json({
-        message: 'Review added successfully',
-        restaurant: updatedRestaurant
-      });
+      const userId = req.user.id;
+      const restaurant = await restaurantService.getRestaurantByOwner(userId);
+      const deliverySettings = req.body;
+      
+      const updatedRestaurant = await restaurantService.updateDeliverySettings(
+        restaurant._id,
+        deliverySettings,
+        userId
+      );
+      
+      return successResponse(res, 200, 'Delivery settings updated successfully', updatedRestaurant);
     } catch (error) {
-      logger.error('Adding review failed:', error);
-      res.status(400).json({
-        message: 'Failed to add review',
-        error: error.message
-      });
+      logger.error(`Error updating delivery settings: ${error.message}`);
+      next(error);
     }
   }
 
-  async searchRestaurants(req, res) {
+  /**
+   * Toggle restaurant open/closed status
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async toggleRestaurantStatus(req, res, next) {
     try {
-      const restaurants = await RestaurantService.searchRestaurants(req.query);
-      res.status(200).json({
-        message: 'Restaurants retrieved successfully',
-        restaurants
-      });
+      const userId = req.user.id;
+      const restaurant = await restaurantService.getRestaurantByOwner(userId);
+      
+      const updatedRestaurant = await restaurantService.toggleRestaurantStatus(
+        restaurant._id,
+        userId
+      );
+      
+      const status = updatedRestaurant.isOpen ? 'open' : 'closed';
+      return successResponse(res, 200, `Restaurant is now ${status}`, updatedRestaurant);
     } catch (error) {
-      logger.error('Restaurant search failed:', error);
-      res.status(500).json({ 
-        message: 'Failed to search restaurants', 
-        error: error.message 
-      });
+      logger.error(`Error toggling restaurant status: ${error.message}`);
+      next(error);
     }
   }
 
-  async getRestaurantDetails(req, res) {
+  /**
+   * Delete restaurant
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async deleteRestaurant(req, res, next) {
     try {
-      const { restaurantId } = req.params;
-      const restaurant = await RestaurantService.getRestaurantDetails(restaurantId);
-      if (!restaurant) {
-        return res.status(404).json({ message: 'Restaurant not found' });
-      }
-      res.status(200).json({ restaurant });
+      const userId = req.user.id;
+      const restaurant = await restaurantService.getRestaurantByOwner(userId);
+      
+      await restaurantService.deleteRestaurant(restaurant._id, userId);
+      
+      return successResponse(res, 200, 'Restaurant deleted successfully', null);
     } catch (error) {
-      logger.error('Fetching restaurant details failed:', error);
-      res.status(500).json({ 
-        message: 'Failed to fetch restaurant details', 
-        error: error.message 
-      });
-    }
-  }
-
-  async updateRestaurant(req, res) {
-    try {
-      const { restaurantId } = req.params;
-      const updateData = req.body;
-      const restaurant = await RestaurantService.updateRestaurant(restaurantId, updateData);
-      res.status(200).json({
-        message: 'Restaurant updated successfully',
-        restaurant
-      });
-    } catch (error) {
-      logger.error('Restaurant update failed:', error);
-      res.status(400).json({ 
-        message: 'Failed to update restaurant', 
-        error: error.message 
-      });
-    }
-  }
-
-  async deleteRestaurant(req, res) {
-    try {
-      const { restaurantId } = req.params;
-      await RestaurantService.deleteRestaurant(restaurantId);
-      res.status(200).json({
-        message: 'Restaurant deleted successfully'
-      });
-    } catch (error) {
-      logger.error('Restaurant deletion failed:', error);
-      res.status(400).json({ 
-        message: 'Failed to delete restaurant', 
-        error: error.message 
-      });
+      logger.error(`Error deleting restaurant: ${error.message}`);
+      next(error);
     }
   }
 }

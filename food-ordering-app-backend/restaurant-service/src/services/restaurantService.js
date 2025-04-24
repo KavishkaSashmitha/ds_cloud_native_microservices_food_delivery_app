@@ -1,173 +1,215 @@
 const Restaurant = require('../models/Restaurant');
-const logger = require('../config/logger');
+const mongoose = require('mongoose');
+const { NotFoundError, BadRequestError, UnauthorizedError } = require('../utils/errors');
 
+/**
+ * Restaurant Service - Handles business logic for restaurant operations
+ */
 class RestaurantService {
-  async createRestaurant(restaurantData) {
-    try {
-      const restaurant = new Restaurant(restaurantData);
-      await restaurant.validate();
-      return await restaurant.save();
-    } catch (error) {
-      logger.error('Error creating restaurant:', error);
-      throw new Error(`Failed to create restaurant: ${error.message}`);
+  /**
+   * Create a new restaurant
+   * @param {Object} restaurantData - Restaurant data
+   * @param {String} userId - User ID of the restaurant owner
+   * @returns {Promise<Object>} Created restaurant
+   */
+  async createRestaurant(restaurantData, userId) {
+    // Check if user already has a restaurant
+    const existingRestaurant = await Restaurant.findOne({ owner: userId });
+    
+    if (existingRestaurant) {
+      throw new BadRequestError('User already has a restaurant');
     }
+    
+    const restaurant = new Restaurant({
+      ...restaurantData,
+      owner: userId
+    });
+    
+    return await restaurant.save();
   }
 
-  async addMenuItem(restaurantId, menuItem) {
-    try {
-      const restaurant = await Restaurant.findById(restaurantId);
-      if (!restaurant) {
-        throw new Error('Restaurant not found');
-      }
-
-      const validationErrors = restaurant.validateMenuItem(menuItem);
-      if (validationErrors.length > 0) {
-        throw new Error(validationErrors.join(', '));
-      }
-
-      restaurant.menuItems.push(menuItem);
-      return await restaurant.save();
-    } catch (error) {
-      logger.error('Error adding menu item:', error);
-      throw error;
+  /**
+   * Get restaurant by ID
+   * @param {String} restaurantId - Restaurant ID
+   * @param {String} userId - User ID of the requester
+   * @returns {Promise<Object>} Restaurant data
+   */
+  async getRestaurantById(restaurantId, userId) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      throw new BadRequestError('Invalid restaurant ID');
     }
+    
+    const restaurant = await Restaurant.findById(restaurantId);
+    
+    if (!restaurant) {
+      throw new NotFoundError('Restaurant not found');
+    }
+    
+    // Check if the user is the owner of the restaurant
+    if (restaurant.owner.toString() !== userId) {
+      throw new UnauthorizedError('You are not authorized to access this restaurant');
+    }
+    
+    return restaurant;
   }
 
-  async updateMenuItem(restaurantId, itemId, updateData) {
-    try {
-      const restaurant = await Restaurant.findById(restaurantId);
-      if (!restaurant) {
-        throw new Error('Restaurant not found');
-      }
-
-      const menuItem = restaurant.menuItems.id(itemId);
-      if (!menuItem) {
-        throw new Error('Menu item not found');
-      }
-
-      Object.assign(menuItem, updateData);
-      await restaurant.save();
-      return restaurant;
-    } catch (error) {
-      logger.error('Error updating menu item:', error);
-      throw error;
+  /**
+   * Get restaurant by owner ID
+   * @param {String} userId - User ID of the restaurant owner
+   * @returns {Promise<Object>} Restaurant data
+   */
+  async getRestaurantByOwner(userId) {
+    const restaurant = await Restaurant.findOne({ owner: userId });
+    
+    if (!restaurant) {
+      throw new NotFoundError('Restaurant not found for this user');
     }
+    
+    return restaurant;
   }
 
-  async deleteMenuItem(restaurantId, itemId) {
-    try {
-      const restaurant = await Restaurant.findById(restaurantId);
-      if (!restaurant) {
-        throw new Error('Restaurant not found');
-      }
-
-      restaurant.menuItems.pull(itemId);
-      return await restaurant.save();
-    } catch (error) {
-      logger.error('Error deleting menu item:', error);
-      throw error;
+  /**
+   * Update restaurant
+   * @param {String} restaurantId - Restaurant ID
+   * @param {Object} updateData - Data to update
+   * @param {String} userId - User ID of the requester
+   * @returns {Promise<Object>} Updated restaurant
+   */
+  async updateRestaurant(restaurantId, updateData, userId) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      throw new BadRequestError('Invalid restaurant ID');
     }
+    
+    const restaurant = await Restaurant.findById(restaurantId);
+    
+    if (!restaurant) {
+      throw new NotFoundError('Restaurant not found');
+    }
+    
+    // Check if the user is the owner of the restaurant
+    if (restaurant.owner.toString() !== userId) {
+      throw new UnauthorizedError('You are not authorized to update this restaurant');
+    }
+    
+    // Update the restaurant
+    Object.assign(restaurant, updateData);
+    restaurant.updatedAt = Date.now();
+    
+    return await restaurant.save();
   }
 
-  async addReview(restaurantId, reviewData) {
-    try {
-      const restaurant = await Restaurant.findById(restaurantId);
-      if (!restaurant) {
-        throw new Error('Restaurant not found');
-      }
-
-      restaurant.reviews.push(reviewData);
-      restaurant.rating = this.calculateAverageRating(restaurant.reviews);
-      return await restaurant.save();
-    } catch (error) {
-      logger.error('Error adding review:', error);
-      throw error;
+  /**
+   * Delete restaurant
+   * @param {String} restaurantId - Restaurant ID
+   * @param {String} userId - User ID of the requester
+   * @returns {Promise<Object>} Deletion result
+   */
+  async deleteRestaurant(restaurantId, userId) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      throw new BadRequestError('Invalid restaurant ID');
     }
+    
+    const restaurant = await Restaurant.findById(restaurantId);
+    
+    if (!restaurant) {
+      throw new NotFoundError('Restaurant not found');
+    }
+    
+    // Check if the user is the owner of the restaurant
+    if (restaurant.owner.toString() !== userId) {
+      throw new UnauthorizedError('You are not authorized to delete this restaurant');
+    }
+    
+    return await Restaurant.findByIdAndDelete(restaurantId);
   }
 
-  calculateAverageRating(reviews) {
-    if (!reviews.length) return 0;
-    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return (sum / reviews.length).toFixed(1);
+  /**
+   * Update restaurant business hours
+   * @param {String} restaurantId - Restaurant ID
+   * @param {Array} businessHours - New business hours
+   * @param {String} userId - User ID of the requester
+   * @returns {Promise<Object>} Updated restaurant
+   */
+  async updateBusinessHours(restaurantId, businessHours, userId) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      throw new BadRequestError('Invalid restaurant ID');
+    }
+    
+    const restaurant = await Restaurant.findById(restaurantId);
+    
+    if (!restaurant) {
+      throw new NotFoundError('Restaurant not found');
+    }
+    
+    // Check if the user is the owner of the restaurant
+    if (restaurant.owner.toString() !== userId) {
+      throw new UnauthorizedError('You are not authorized to update this restaurant');
+    }
+    
+    restaurant.businessHours = businessHours;
+    restaurant.updatedAt = Date.now();
+    
+    return await restaurant.save();
   }
 
-  async updateRestaurantAvailability(restaurantId, isAvailable) {
-    try {
-      return await Restaurant.findByIdAndUpdate(
-        restaurantId, 
-        { isAvailable }, 
-        { new: true }
-      );
-    } catch (error) {
-      logger.error('Error updating restaurant availability:', error);
-      throw error;
+  /**
+   * Update restaurant delivery settings
+   * @param {String} restaurantId - Restaurant ID
+   * @param {Object} deliverySettings - New delivery settings
+   * @param {String} userId - User ID of the requester
+   * @returns {Promise<Object>} Updated restaurant
+   */
+  async updateDeliverySettings(restaurantId, deliverySettings, userId) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      throw new BadRequestError('Invalid restaurant ID');
     }
+    
+    const restaurant = await Restaurant.findById(restaurantId);
+    
+    if (!restaurant) {
+      throw new NotFoundError('Restaurant not found');
+    }
+    
+    // Check if the user is the owner of the restaurant
+    if (restaurant.owner.toString() !== userId) {
+      throw new UnauthorizedError('You are not authorized to update this restaurant');
+    }
+    
+    restaurant.deliverySettings = {
+      ...restaurant.deliverySettings,
+      ...deliverySettings
+    };
+    restaurant.updatedAt = Date.now();
+    
+    return await restaurant.save();
   }
 
-  async getRestaurantDetails(restaurantId) {
-    try {
-      return await Restaurant.findById(restaurantId)
-        .populate('owner', 'name email');
-    } catch (error) {
-      logger.error('Error fetching restaurant details:', error);
-      throw error;
+  /**
+   * Toggle restaurant open/closed status
+   * @param {String} restaurantId - Restaurant ID
+   * @param {String} userId - User ID of the requester
+   * @returns {Promise<Object>} Updated restaurant
+   */
+  async toggleRestaurantStatus(restaurantId, userId) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      throw new BadRequestError('Invalid restaurant ID');
     }
-  }
-
-  async searchRestaurants(query) {
-    try {
-      const { cuisine, name, minPrice, maxPrice } = query;
-      
-      // Build dynamic search conditions
-      const searchConditions = {};
-      
-      if (cuisine) searchConditions.cuisine = cuisine;
-      if (name) searchConditions.name = { $regex: name, $options: 'i' };
-      
-      // Price filtering for menu items
-      if (minPrice || maxPrice) {
-        searchConditions['menuItems.price'] = {};
-        if (minPrice) searchConditions['menuItems.price'].$gte = minPrice;
-        if (maxPrice) searchConditions['menuItems.price'].$lte = maxPrice;
-      }
-
-      return await Restaurant.find(searchConditions)
-        .select('name cuisine address menuItems');
-    } catch (error) {
-      logger.error('Restaurant search failed:', error);
-      throw error;
+    
+    const restaurant = await Restaurant.findById(restaurantId);
+    
+    if (!restaurant) {
+      throw new NotFoundError('Restaurant not found');
     }
-  }
-
-  async updateRestaurant(restaurantId, updateData) {
-    try {
-      const restaurant = await Restaurant.findById(restaurantId);
-      if (!restaurant) {
-        throw new Error('Restaurant not found');
-      }
-
-      Object.assign(restaurant, updateData);
-      await restaurant.validate();
-      return await restaurant.save();
-    } catch (error) {
-      logger.error('Error updating restaurant:', error);
-      throw error;
+    
+    // Check if the user is the owner of the restaurant
+    if (restaurant.owner.toString() !== userId) {
+      throw new UnauthorizedError('You are not authorized to update this restaurant');
     }
-  }
-
-  async deleteRestaurant(restaurantId) {
-    try {
-      const restaurant = await Restaurant.findById(restaurantId);
-      if (!restaurant) {
-        throw new Error('Restaurant not found');
-      }
-
-      await restaurant.remove();
-      return { success: true };
-    } catch (error) {
-      logger.error('Error deleting restaurant:', error);
-      throw error;
-    }
+    
+    restaurant.isOpen = !restaurant.isOpen;
+    restaurant.updatedAt = Date.now();
+    
+    return await restaurant.save();
   }
 }
 
