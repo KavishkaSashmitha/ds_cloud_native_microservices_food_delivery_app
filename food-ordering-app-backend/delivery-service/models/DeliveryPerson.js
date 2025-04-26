@@ -1,25 +1,74 @@
 const mongoose = require('mongoose');
 
 const deliveryPersonSchema = new mongoose.Schema({
-    userId: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    currentLocation: {
-      type: { type: String, default: 'Point' },
-      coordinates: { type: [Number], default: [0, 0] }
+  userId: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  phone: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true
+  },
+  isAvailable: {
+    type: Boolean,
+    default: false
+  },
+  rating: {
+    type: Number,
+    default: 0
+  },
+  totalRatings: {
+    type: Number,
+    default: 0
+  },
+  vehicleType: {
+    type: String,
+    enum: ['BIKE', 'CAR', 'SCOOTER', 'BICYCLE'],
+    required: true
+  },
+  vehicleNumber: {
+    type: String,
+    required: true
+  },
+  currentLocation: {
+    lat: {
+      type: Number,
+      default: null
     },
-    status: { 
-      type: String, 
-      enum: ['AVAILABLE', 'BUSY', 'OFFLINE'],
-      default: 'OFFLINE'
+    lng: {
+      type: Number,
+      default: null
     },
-    vehicleType: { type: String, enum: ['BIKE', 'CAR', 'SCOOTER'] },
-    currentDeliveryId: { type: String },
-    rating: { type: Number, min: 1, max: 5 },
-    completedDeliveries: { type: Number, default: 0 }
-});
-  
-deliveryPersonSchema.index({ currentLocation: '2dsphere' });
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  completedDeliveries: {
+    type: Number,
+    default: 0
+  },
+  totalEarnings: {
+    type: Number,
+    default: 0
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { timestamps: true });
 
-const DeliveryPerson = mongoose.model('DeliveryPerson', deliveryPersonSchema);
-
-module.exports = DeliveryPerson;
+module.exports = mongoose.model('DeliveryPerson', deliveryPersonSchema);

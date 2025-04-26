@@ -1,119 +1,74 @@
-const { consumer, connect } = require('../config/kafka');
-const { logger } = require('../utils/logger');
+const { logger } = require('../config/logger');
 
-// Dynamic service selection
-let orderService;
-try {
-  if (process.env.USE_MOCK_SERVICES === 'true') {
-    orderService = require('./mockOrderService');
-    logger.info('Using mock order service');
-  } else {
-    orderService = require('./orderService');
-    logger.info('Using real order service');
-  }
-} catch (error) {
-  logger.error(`Error loading order service: ${error.message}`);
-  // Default to mock service if there's an error loading the real one
-  orderService = require('./mockOrderService');
-}
+/**
+ * A simple Kafka consumer service
+ * This is a placeholder implementation since Kafka isn't enabled
+ * You can expand this when ready to integrate with Kafka
+ */
+const kafkaConsumerService = {
+  /**
+   * Flag to track if consumer is running
+   */
+  isRunning: false,
 
-class KafkaConsumerService {
-  constructor() {
-    this.running = false;
-  }
-
-  async start() {
-    if (process.env.USE_MOCK_SERVICES === 'true') {
-      logger.info('Mock services enabled, not connecting to Kafka');
-      this.running = true;
-      return;
-    }
-    
+  /**
+   * Start the Kafka consumer
+   */
+  start: async function() {
     try {
-      // First connect to Kafka
-      const connected = await connect();
-      
-      if (!connected) {
-        logger.warn('Failed to connect to Kafka, service will still start but won\'t process messages');
+      // Only start if Kafka is enabled in configuration
+      if (process.env.ENABLE_KAFKA !== 'true') {
+        logger.info('Kafka consumer not started - ENABLE_KAFKA is not set to true');
         return;
       }
       
-      await consumer.subscribe({ topic: 'order-events', fromBeginning: false });
+      logger.info('Starting Kafka consumer...');
       
-      await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-          try {
-            const event = JSON.parse(message.value.toString());
-            logger.info(`Received event: ${event.type}`);
-            
-            switch (event.type) {
-              case 'PAYMENT_PROCESSED':
-                await orderService.createOrder({
-                  orderId: event.data.orderId,
-                  customerId: event.data.customerId,
-                  restaurantId: event.data.restaurantId,
-                  deliveryLocation: event.data.location,
-                  items: event.data.items,
-                  totalAmount: event.data.totalAmount,
-                  status: 'OUT_FOR_DELIVERY'
-                });
-                break;
-
-              case 'ORDER_CANCELLED':
-                await orderService.updateOrderStatus(
-                  event.data.orderId, 
-                  'CANCELLED'
-                );
-                break;
-
-              case 'DELIVERY_UPDATE':
-                await orderService.updateOrderStatus(
-                  event.data.orderId,
-                  event.data.newStatus
-                );
-                break;
-
-              default:
-                logger.warn(`Unhandled event type: ${event.type}`);
-            }
-          } catch (error) {
-            logger.error(`Error processing Kafka message: ${error.message}`, {
-              stack: error.stack,
-              event: message.value ? message.value.toString() : 'No message value'
-            });
-          }
-        }
-      });
+      // Here you would initialize Kafka client and consumers
+      // For example:
+      // const kafka = new KafkaJS.Kafka({
+      //   clientId: 'delivery-service',
+      //   brokers: process.env.KAFKA_BROKERS.split(',')
+      // });
+      // const consumer = kafka.consumer({ groupId: 'delivery-service-group' });
+      // await consumer.connect();
+      // await consumer.subscribe({ topic: 'new-orders' });
+      // await consumer.run({ ... })
       
-      this.running = true;
+      this.isRunning = true;
       logger.info('Kafka consumer started successfully');
+      
     } catch (error) {
       logger.error(`Failed to start Kafka consumer: ${error.message}`);
-      // Don't throw error to allow service to start without Kafka
-      this.running = false;
+      this.isRunning = false;
+      throw error;
     }
-  }
-  
-  async stop() {
-    if (process.env.USE_MOCK_SERVICES === 'true') {
-      this.running = false;
-      return;
-    }
-    
+  },
+
+  /**
+   * Stop the Kafka consumer
+   */
+  stop: async function() {
     try {
-      if (consumer) {
-        await consumer.stop();
+      if (!this.isRunning) {
+        logger.info('Kafka consumer is not running');
+        return;
       }
-      this.running = false;
-      logger.info('Kafka consumer stopped');
+      
+      logger.info('Stopping Kafka consumer...');
+      
+      // Here you would disconnect Kafka clients
+      // For example:
+      // await consumer.disconnect();
+      
+      this.isRunning = false;
+      logger.info('Kafka consumer stopped successfully');
+      
     } catch (error) {
-      logger.error(`Error stopping Kafka consumer: ${error.message}`);
+      logger.error(`Failed to stop Kafka consumer: ${error.message}`);
+      throw error;
     }
   }
+};
 
-  isRunning() {
-    return this.running;
-  }
-}
-
-module.exports = new KafkaConsumerService();
+module.exports = kafkaConsumerService;

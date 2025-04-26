@@ -1,0 +1,2 @@
+{"level":"info","message":"Restaurant service running on port 3003 in development mode","service":"restaurant-service","timestamp":"2025-04-24 21:26:47"}
+{"level":"info","message":"MongoDB Connected: ac-vviwdge-shard-00-01.34dxv57.mongodb.net","service":"restaurant-service","timestamp":"2025-04-24 21:26:49"}
