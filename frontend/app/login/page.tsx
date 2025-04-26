@@ -1,13 +1,11 @@
 "use client";
 
-import type React from "react";
-
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, UtensilsCrossed } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useAuth, type UserRole } from "@/contexts/auth-context";
+import { useAuth, UserRole } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +20,11 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 
+interface FormErrors {
+  email: string;
+  password: string;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading } = useAuth();
@@ -29,22 +32,42 @@ export default function LoginPage() {
   const [userRole, setUserRole] = useState<UserRole>("customer");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({
+    email: "",
+    password: "",
+  });
+
+  const validateForm = (): boolean => {
+    let isValid = true;
+    const newErrors = { email: "", password: "" };
+
+    // Email validation
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!validateForm()) return;
+
     try {
       await login(email, password, userRole);
-      toast({
-        title: "Login successful",
-        description: `Welcome back! You are now logged in as a ${userRole}.`,
-      });
+      // Redirect will be handled by the auth context
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
-        variant: "destructive",
-      });
+      console.error("Login error:", error);
+      // Toast notification is shown by the auth context
     }
   };
 
@@ -122,10 +145,15 @@ export default function LoginPage() {
                     type="email"
                     placeholder="your.email@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (errors.email) setErrors({ ...errors, email: "" });
+                    }}
                     required
-                    className="border-orange-100 focus-visible:ring-orange-500"
                   />
+                  {errors.email && (
+                    <p className="text-xs text-red-500">{errors.email}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -135,46 +163,44 @@ export default function LoginPage() {
                     </Label>
                     <Link
                       href="/forgot-password"
-                      className="text-xs text-orange-500 hover:underline hover:text-orange-600"
+                      className="text-xs text-orange-500 hover:underline"
                     >
-                      Forgot password?
+                      Forgot Password?
                     </Link>
                   </div>
                   <Input
                     id="password"
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (errors.password)
+                        setErrors({ ...errors, password: "" });
+                    }}
                     required
-                    className="border-orange-100 focus-visible:ring-orange-500"
                   />
+                  {errors.password && (
+                    <p className="text-xs text-red-500">{errors.password}</p>
+                  )}
                 </div>
               </CardContent>
-
-              <CardFooter className="flex flex-col space-y-4 pb-6">
+              <CardFooter className="flex flex-col gap-4">
                 <Button
                   type="submit"
-                  className="w-full bg-orange-500 text-white hover:bg-orange-600"
+                  className="w-full bg-orange-500 hover:bg-orange-600"
                   disabled={isLoading}
                 >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                      <span>Logging in...</span>
-                    </div>
-                  ) : (
-                    "Login"
-                  )}
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
-                <div className="text-center text-sm">
-                  Don&apos;t have an account?{" "}
+                <p className="text-sm text-center text-muted-foreground">
+                  Don't have an account?{" "}
                   <Link
                     href="/register"
-                    className="font-medium text-orange-500 hover:underline hover:text-orange-600"
+                    className="text-orange-500 hover:underline"
                   >
                     Sign up
                   </Link>
-                </div>
+                </p>
               </CardFooter>
             </form>
           </Card>

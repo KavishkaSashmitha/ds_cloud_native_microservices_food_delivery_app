@@ -1,0 +1,3 @@
+backend/api-gateway/logs/combined.log
+backend/auth-service/logs/combined.log
+frontend/package-lock.json
