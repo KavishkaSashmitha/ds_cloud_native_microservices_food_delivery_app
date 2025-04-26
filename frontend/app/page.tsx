@@ -1,9 +1,8 @@
-import Link from "next/link"
-import { ArrowRight, UtensilsCrossed } from "lucide-react"
+import { ArrowRight, UtensilsCrossed } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button"
-
-export default function Home() {
+export default function Page() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -13,15 +12,24 @@ export default function Home() {
             <span className="text-xl font-bold">FoodExpress</span>
           </div>
           <nav className="hidden gap-6 md:flex">
-            <Link href="/" className="text-sm font-medium transition-colors hover:text-orange-500">
+            <a
+              href="/"
+              className="text-sm font-medium transition-colors hover:text-orange-500"
+            >
               Home
-            </Link>
-            <Link href="#features" className="text-sm font-medium transition-colors hover:text-orange-500">
+            </a>
+            <a
+              href="#features"
+              className="text-sm font-medium transition-colors hover:text-orange-500"
+            >
               Features
-            </Link>
-            <Link href="#about" className="text-sm font-medium transition-colors hover:text-orange-500">
+            </a>
+            <a
+              href="#about"
+              className="text-sm font-medium transition-colors hover:text-orange-500"
+            >
               About
-            </Link>
+            </a>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -30,7 +38,9 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/register">
-              <Button className="bg-orange-500 text-white hover:bg-orange-600">Sign Up</Button>
+              <Button className="bg-orange-500 text-white hover:bg-orange-600">
+                Sign Up
+              </Button>
             </Link>
           </div>
         </div>
@@ -46,11 +56,15 @@ export default function Home() {
                 Delivered Fast
               </h1>
               <p className="text-lg text-muted-foreground md:text-xl">
-                Order from your favorite restaurants and get food delivered to your doorstep in minutes.
+                Order from your favorite restaurants and get food delivered to
+                your doorstep in minutes.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center md:justify-start">
                 <Link href="/register">
-                  <Button size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
+                  <Button
+                    size="lg"
+                    className="bg-orange-500 text-white hover:bg-orange-600"
+                  >
                     Get Started
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -64,7 +78,7 @@ export default function Home() {
             </div>
             <div className="flex-1">
               <img
-                src="/placeholder.svg?height=400&width=500"
+                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=500&h=400"
                 alt="Food delivery illustration"
                 className="mx-auto rounded-lg object-cover shadow-lg"
                 width={500}
@@ -77,30 +91,18 @@ export default function Home() {
         {/* Features Section */}
         <section id="features" className="py-20">
           <div className="container">
-            <h2 className="mb-12 text-center text-3xl font-bold">How It Works</h2>
+            <h2 className="mb-12 text-center text-3xl font-bold">
+              How It Works
+            </h2>
             <div className="grid gap-8 md:grid-cols-3">
               <div className="flex flex-col items-center text-center">
                 <div className="mb-4 rounded-full bg-orange-100 p-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-orange-500"
-                  >
-                    <path d="M4 11h16a1 1 0 0 1 1 1v.5a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 12.5V12a1 1 0 0 1 1-1Z" />
-                    <path d="M5 15h14a1 1 0 0 1 1 1v2a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-2a1 1 0 0 1 1-1Z" />
-                    <path d="M12 4C8 4 7 8 7 10h10c0-2-1-6-5-6Z" />
-                  </svg>
+                  <UtensilsCrossed className="h-6 w-6 text-orange-500" />
                 </div>
                 <h3 className="mb-2 text-xl font-semibold">Choose Your Food</h3>
                 <p className="text-muted-foreground">
-                  Browse through hundreds of restaurants and select your favorite dishes.
+                  Browse through hundreds of restaurants and select your
+                  favorite dishes.
                 </p>
               </div>
               <div className="flex flex-col items-center text-center">
@@ -124,7 +126,8 @@ export default function Home() {
                 </div>
                 <h3 className="mb-2 text-xl font-semibold">Place Your Order</h3>
                 <p className="text-muted-foreground">
-                  Add items to your cart, customize your order, and proceed to checkout.
+                  Add items to your cart, customize your order, and proceed to
+                  checkout.
                 </p>
               </div>
               <div className="flex flex-col items-center text-center">
@@ -149,7 +152,8 @@ export default function Home() {
                 </div>
                 <h3 className="mb-2 text-xl font-semibold">Fast Delivery</h3>
                 <p className="text-muted-foreground">
-                  Track your order in real-time and get your food delivered to your doorstep.
+                  Track your order in real-time and get your food delivered to
+                  your doorstep.
                 </p>
               </div>
             </div>
@@ -162,17 +166,24 @@ export default function Home() {
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="mb-6 text-3xl font-bold">About FoodExpress</h2>
               <p className="mb-8 text-lg text-muted-foreground">
-                FoodExpress is a revolutionary food delivery platform connecting customers with their favorite
-                restaurants. Our mission is to make food delivery fast, reliable, and enjoyable for everyone.
+                FoodExpress is a revolutionary food delivery platform connecting
+                customers with their favorite restaurants. Our mission is to
+                make food delivery fast, reliable, and enjoyable for everyone.
               </p>
               <div className="flex justify-center gap-4">
                 <Link href="/register/delivery">
-                  <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50">
+                  <Button
+                    variant="outline"
+                    className="border-orange-500 text-orange-500 hover:bg-orange-50"
+                  >
                     Become a Delivery Partner
                   </Button>
                 </Link>
                 <Link href="/register/restaurant">
-                  <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-50">
+                  <Button
+                    variant="outline"
+                    className="border-orange-500 text-orange-500 hover:bg-orange-50"
+                  >
                     Partner Your Restaurant
                   </Button>
                 </Link>
@@ -192,19 +203,28 @@ export default function Home() {
               © {new Date().getFullYear()} FoodExpress. All rights reserved.
             </p>
             <div className="flex gap-4">
-              <Link href="#" className="text-sm text-muted-foreground hover:text-orange-500">
+              <a
+                href="#"
+                className="text-sm text-muted-foreground hover:text-orange-500"
+              >
                 Terms
-              </Link>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-orange-500">
+              </a>
+              <a
+                href="#"
+                className="text-sm text-muted-foreground hover:text-orange-500"
+              >
                 Privacy
-              </Link>
-              <Link href="#" className="text-sm text-muted-foreground hover:text-orange-500">
+              </a>
+              <a
+                href="#"
+                className="text-sm text-muted-foreground hover:text-orange-500"
+              >
                 Contact
-              </Link>
+              </a>
             </div>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

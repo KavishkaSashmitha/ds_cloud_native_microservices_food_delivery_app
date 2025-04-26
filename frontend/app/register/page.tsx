@@ -1,9 +1,15 @@
-import Link from "next/link"
-import { ArrowLeft, UtensilsCrossed } from "lucide-react"
+import Link from "next/link";
+import { ArrowLeft, UtensilsCrossed } from "lucide-react";
 
-import { CustomerRegistrationForm } from "@/components/customer-registration-form"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CustomerRegistrationForm } from "@/components/customer-registration-form";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function RegisterPage() {
   return (
@@ -22,7 +28,9 @@ export default function RegisterPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Create an Account</CardTitle>
-            <CardDescription>Sign up as a customer to order delicious food</CardDescription>
+            <CardDescription>
+              Sign up as a customer to order delicious food
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <CustomerRegistrationForm />
@@ -33,7 +41,9 @@ export default function RegisterPage() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or register as</span>
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or register as
+                  </span>
                 </div>
               </div>
 
@@ -61,5 +71,5 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
