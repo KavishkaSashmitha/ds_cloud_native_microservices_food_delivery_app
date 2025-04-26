@@ -1,0 +1,2 @@
+{"level":"info","message":"Restaurant Service running on port 3002","service":"restaurant-service","timestamp":"2025-04-26 22:36:57"}
+{"level":"info","message":"Connected to MongoDB","service":"restaurant-service","timestamp":"2025-04-26 22:36:59"}
