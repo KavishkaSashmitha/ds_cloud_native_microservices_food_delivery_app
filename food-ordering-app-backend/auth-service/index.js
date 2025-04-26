@@ -1,37 +1,38 @@
-// auth-service/index.js
+// server.js - Main application entry point
+require('dotenv').config();
 const express = require('express');
-const jwt = require('jsonwebtoken');
+const cors = require('cors');
+const morgan = require('morgan');
+const { connectDB } = require('./config/database');
+const authRoutes = require('./routes/authRoutes');
+const { errorHandler } = require('./utils/errorHandler');
+
+// Initialize express application
 const app = express();
+
+// Connect to MongoDB
+connectDB();
+
+// Middleware
 app.use(express.json());
+app.use(cors());
+app.use(morgan('dev'));
 
-const JWT_SECRET = 'your_jwt_secret_key';
-const ROLES = ['CUSTOMER', 'RESTAURANT_OWNER', 'DELIVERY_PERSON', 'ADMIN'];
+// Routes
+app.use('/api/auth', authRoutes);
 
-// Mock user database
-const users = [];
-
-app.post('/register', (req, res) => {
-  const { username, password, role } = req.body;
-  if (!ROLES.includes(role)) return res.status(400).send('Invalid role');
-  
-  users.push({ username, password, role });
-  res.status(201).send('User created');
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', service: 'auth-service' });
 });
 
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const user = users.find(u => u.username === username && u.password === password);
-  
-  if (!user) return res.status(401).send('Invalid credentials');
-  
-  const token = jwt.sign(
-    { username: user.username, role: user.role },
-    JWT_SECRET,
-    { expiresIn: '1h' }
-  );
-  
-  res.json({ token });
-});
-app.get('/health', (req, res) => res.send('OK'));
+// Error handling middleware
+app.use(errorHandler);
 
-app.listen(3000, () => console.log('Auth service running on port 3000'));
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Auth service running on port ${PORT}`);
+});
+
+module.exports = app; // For testing purposes

@@ -5,6 +5,8 @@ app.use(express.json());
 
 let restaurants = ['colombo-cafe', 'pizza-hut', 'kfc'];
 
+const restaurantRoutes = require('./src/routes/restaurantRoutes');
+
 app.get('/restaurants', (req, res) => {
   res.json(restaurants);
 });
@@ -14,6 +16,8 @@ app.post('/restaurants', (req, res) => {
   restaurants.push(restaurant);
   res.status(201).send('Restaurant created');
 });
+
+app.use('/api/restaurants', restaurantRoutes);
 
 app.get('/health', (req, res) => res.send('OK'));
 

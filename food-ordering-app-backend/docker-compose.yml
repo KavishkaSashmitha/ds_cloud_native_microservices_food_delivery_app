@@ -13,19 +13,13 @@ services:
       - "8080:8080"
     depends_on:
       - auth-service
-      - restaurant-service
     networks:
       - food-network
     environment:
       - NODE_ENV=development
     restart: unless-stopped
 
-  restaurant-service:
-    build: ./restaurant-service
-    ports:
-      - "3001:3001"
-    networks:
-      - food-network
+  
 
 networks:
   food-network:
