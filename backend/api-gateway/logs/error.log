@@ -4,3 +4,9 @@
 {"level":"error","message":"Authentication error: Bad control character in string literal in JSON at position 14 (line 1 column 15)","service":"api-gateway","timestamp":"2025-04-26 23:20:21"}
 {"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-27 12:33:08"}
 {"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-27 13:13:29"}
+{"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-28 00:41:14"}
+{"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-28 00:41:14"}
+{"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-28 00:41:21"}
+{"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-28 00:41:21"}
+{"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-28 00:41:24"}
+{"level":"error","message":"Proxy error: ","service":"api-gateway","timestamp":"2025-04-28 00:41:24"}

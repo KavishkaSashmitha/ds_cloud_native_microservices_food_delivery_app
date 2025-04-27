@@ -26,6 +26,7 @@ export interface CreateOrderRequest {
     city: string;
     state: string;
     zipCode: string;
+    coordinates:[number, number]; // [longitude, latitude]
     location: {
       type: "Point";
       coordinates: [number, number]; // [longitude, latitude]

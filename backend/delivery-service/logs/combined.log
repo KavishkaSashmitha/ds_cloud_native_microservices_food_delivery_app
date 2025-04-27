@@ -21,3 +21,6 @@
 {"level":"info","message":"::1 - - [27/Apr/2025:10:44:39 +0000] \"GET /deliveries HTTP/1.1\" 200 72 \"-\" \"PostmanRuntime/7.43.3\"","service":"delivery-service","timestamp":"2025-04-27 16:14:39"}
 {"level":"info","message":"Delivery Service running on port 3004","service":"delivery-service","timestamp":"2025-04-27 22:10:11"}
 {"level":"info","message":"Connected to MongoDB","service":"delivery-service","timestamp":"2025-04-27 22:10:12"}
+{"level":"info","message":"Delivery Service running on port 3004","service":"delivery-service","timestamp":"2025-04-28 00:24:11"}
+{"level":"info","message":"Connected to MongoDB","service":"delivery-service","timestamp":"2025-04-28 00:24:12"}
+{"level":"info","message":"::1 - - [27/Apr/2025:19:03:55 +0000] \"GET /deliveries HTTP/1.1\" 200 72 \"-\" \"PostmanRuntime/7.43.3\"","service":"delivery-service","timestamp":"2025-04-28 00:33:55"}

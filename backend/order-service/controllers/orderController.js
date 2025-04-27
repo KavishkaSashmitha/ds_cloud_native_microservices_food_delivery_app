@@ -27,11 +27,22 @@ exports.createOrder = async (req, res) => {
       specialInstructions,
     } = req.body
 
+    // Clean and validate menu item IDs
+    const sanitizedItems = items.map(item => {
+      // Remove any non-alphanumeric characters from menuItemId to prevent issues with "[]" or other invalid characters
+      const sanitizedMenuItemId = item.menuItemId.replace(/[^a-zA-Z0-9]/g, "");
+      
+      return {
+        ...item,
+        menuItemId: sanitizedMenuItemId
+      };
+    });
+
     // Create new order
     const order = new Order({
       customerId: req.user.id,
       restaurantId,
-      items,
+      items: sanitizedItems,
       subtotal,
       tax,
       deliveryFee,
