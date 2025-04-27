@@ -367,7 +367,7 @@ export const restaurantApi = {
   getRestaurantByOwnerId: (ownerId: string) => 
     api.get<{restaurant: Restaurant, businessHours?: BusinessHours}>(`/restaurants/owner/${ownerId}`),
   
-  searchRestaurants: (params: {
+    searchRestaurants: (params: {
     name?: string;
     cuisine?: string;
     city?: string;

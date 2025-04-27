@@ -18,3 +18,7 @@
 {"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:03:15"}
 {"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:03:15"}
 {"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:03:15"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-27 22:10:17"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-27 22:10:18"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 22:58:44"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 23:00:11"}

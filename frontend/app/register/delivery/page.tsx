@@ -1,15 +1,26 @@
-import Link from "next/link"
-import { ArrowLeft, UtensilsCrossed } from "lucide-react"
+"use client";
 
-import { DeliveryRegistrationForm } from "@/components/delivery-registration-form"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link";
+import { ArrowLeft, UtensilsCrossed } from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { DeliveryRegistrationForm } from "@/components/delivery-registration-form";
 
 export default function DeliveryRegisterPage() {
   return (
     <div className="container flex min-h-screen flex-col items-center justify-center py-10">
-      <Link href="/" className="mb-8 flex items-center gap-2 self-start">
+      <Link
+        href="/register"
+        className="mb-8 flex items-center gap-2 self-start"
+      >
         <ArrowLeft className="h-4 w-4" />
-        Back to Home
+        Back to Register
       </Link>
 
       <div className="flex w-full flex-col items-center">
@@ -20,8 +31,12 @@ export default function DeliveryRegisterPage() {
 
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-2xl">Become a Delivery Partner</CardTitle>
-            <CardDescription>Join our delivery team and earn money on your own schedule</CardDescription>
+            <CardTitle className="text-2xl">
+              Become a Delivery Partner
+            </CardTitle>
+            <CardDescription>
+              Join our platform and start delivering food today
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <DeliveryRegistrationForm />
@@ -36,5 +51,5 @@ export default function DeliveryRegisterPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
