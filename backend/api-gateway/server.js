@@ -18,6 +18,7 @@ const USE_DOCKER = process.env.USE_DOCKER === 'true';
 const serviceUrls = {
   auth: USE_DOCKER ? 'http://auth-service:3001' : 'http://localhost:3001',
   restaurant: USE_DOCKER ? 'http://restaurant-service:3002' : 'http://localhost:3002',
+  order: USE_DOCKER ? 'http://order-service:3003' : 'http://localhost:3003', // Added order service
   delivery: USE_DOCKER ? 'http://delivery-service:3004' : 'http://localhost:3004'
 };
 
@@ -136,6 +137,7 @@ app.get('/health', (req, res) => {
     services: {
       auth: serviceUrls.auth,
       restaurant: serviceUrls.restaurant,
+      order: serviceUrls.order, // Added order service to health check
       delivery: serviceUrls.delivery
     }
   });
@@ -180,6 +182,60 @@ app.use('/restaurants', authenticate, createProxyMiddleware(
   createProxyConfig(serviceUrls.restaurant)
 ));
 
+// Order and Payment service routes (auth required)
+app.use('/orders', authenticate, createProxyMiddleware({
+  ...createProxyConfig(serviceUrls.order),
+  pathRewrite: {
+    '^/orders': '/'  // This removes the /orders prefix when forwarding
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    logger.info(`Proxying request to Order Service: ${req.method} ${req.originalUrl}`);
+    
+    // Add user info to the proxied request headers if authenticated
+    if (req.user) {
+      proxyReq.setHeader('X-User-Id', req.user.id || req.user._id || '');
+      proxyReq.setHeader('X-User-Role', req.user.role || '');
+    }
+    
+    // If there's a JSON body, we need to rewrite it
+    if (req.body && Object.keys(req.body).length > 0 && 
+        req.headers['content-type']?.includes('application/json')) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      // Write the body to the proxied request
+      proxyReq.write(bodyData);
+    }
+  }
+}));
+
+// Payment routes (routed through the order service)
+app.use('/payments', authenticate, createProxyMiddleware({
+  ...createProxyConfig(serviceUrls.order),
+  pathRewrite: {
+    '^/payments': '/payments'  // Keep the /payments prefix when forwarding to order service
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    logger.info(`Proxying payment request to Order Service: ${req.method} ${req.originalUrl}`);
+    
+    // Add user info to the proxied request headers if authenticated
+    if (req.user) {
+      proxyReq.setHeader('X-User-Id', req.user.id || req.user._id || '');
+      proxyReq.setHeader('X-User-Role', req.user.role || '');
+    }
+    
+    // If there's a JSON body, we need to rewrite it
+    if (req.body && Object.keys(req.body).length > 0 && 
+        req.headers['content-type']?.includes('application/json')) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      // Write the body to the proxied request
+      proxyReq.write(bodyData);
+    }
+  }
+}));
+
 // Delivery service routes (auth required)
 app.use('/delivery', authenticate, createProxyMiddleware({
   ...createProxyConfig(serviceUrls.delivery),
@@ -214,6 +270,8 @@ app.listen(PORT, () => {
   logger.info('Available routes:');
   logger.info(`  /auth -> ${serviceUrls.auth}`);
   logger.info(`  /restaurants -> ${serviceUrls.restaurant}`);
+  logger.info(`  /orders -> ${serviceUrls.order}`); // Added order service to logs
+  logger.info(`  /payments -> ${serviceUrls.order}`); // Added payment service to logs
   logger.info(`  /delivery -> ${serviceUrls.delivery}`);
   logger.info('  /health - API Gateway health check');
 });

@@ -550,3 +550,104 @@ exports.getOrderStatistics = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message })
   }
 }
+
+// Get nearby orders (for delivery personnel)
+exports.getNearbyOrders = async (req, res) => {
+  try {
+    const { latitude, longitude, maxDistance = 5 } = req.query;
+
+    // Convert to numbers
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    const distance = Number(maxDistance);
+
+    // Find orders that are ready for pickup or waiting for delivery assignment
+    const orders = await Order.find({
+      status: { $in: ["ready_for_pickup"] },
+      deliveryPersonId: { $exists: false }, // No delivery person assigned yet
+      "deliveryAddress.location": {
+        $nearSphere: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat], // [longitude, latitude]
+          },
+          $maxDistance: distance * 1000, // Convert km to meters
+        },
+      },
+    }).sort({ createdAt: 1 }); // Oldest first
+
+    res.status(200).json(orders);
+  } catch (error) {
+    logger.error(`Get nearby orders error: ${error.message}`);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Search orders with filters (admin only)
+exports.searchOrders = async (req, res) => {
+  try {
+    const {
+      customerId,
+      restaurantId,
+      deliveryPersonId,
+      status,
+      fromDate,
+      toDate,
+      minTotal,
+      maxTotal,
+      page = 1,
+      limit = 10,
+      sort = "createdAt:-1",
+    } = req.query;
+
+    // Build query
+    const query = {};
+    if (customerId) query.customerId = customerId;
+    if (restaurantId) query.restaurantId = restaurantId;
+    if (deliveryPersonId) query.deliveryPersonId = deliveryPersonId;
+    if (status) query.status = status;
+
+    // Date range
+    if (fromDate || toDate) {
+      query.createdAt = {};
+      if (fromDate) query.createdAt.$gte = new Date(fromDate);
+      if (toDate) query.createdAt.$lte = new Date(toDate);
+    }
+
+    // Price range
+    if (minTotal || maxTotal) {
+      query.total = {};
+      if (minTotal) query.total.$gte = Number(minTotal);
+      if (maxTotal) query.total.$lte = Number(maxTotal);
+    }
+
+    // Parse sort
+    const [sortField, sortDirection] = sort.split(":");
+    const sortOptions = { [sortField]: sortDirection === "-1" ? -1 : 1 };
+
+    // Pagination
+    const skip = (Number.parseInt(page) - 1) * Number.parseInt(limit);
+
+    // Get orders
+    const orders = await Order.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(Number.parseInt(limit));
+
+    // Get total count
+    const total = await Order.countDocuments(query);
+
+    res.status(200).json({
+      orders,
+      pagination: {
+        total,
+        page: Number.parseInt(page),
+        limit: Number.parseInt(limit),
+        pages: Math.ceil(total / Number.parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    logger.error(`Search orders error: ${error.message}`);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

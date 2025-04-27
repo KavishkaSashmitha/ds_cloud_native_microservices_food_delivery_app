@@ -1,93 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { ChevronRight, MapPin, Search } from "lucide-react"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { ChevronRight, MapPin, Search } from "lucide-react";
 
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RestaurantCard } from "@/components/restaurant-card"
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RestaurantCard } from "@/components/restaurant-card";
+import { restaurantApi } from "@/lib/api";
+import type { Restaurant } from "@/lib/api";
 
-// Mock data for restaurants
-const restaurants = [
-  {
-    id: "1",
-    name: "Burger Palace",
-    image: "/placeholder.svg?height=200&width=300",
-    cuisine: "American",
-    rating: 4.5,
-    deliveryTime: "20-30 min",
-    deliveryFee: 2.99,
-    minOrder: 10,
-    distance: "1.2 km",
-    featured: true,
-  },
-  {
-    id: "2",
-    name: "Pizza Heaven",
-    image: "/placeholder.svg?height=200&width=300",
-    cuisine: "Italian",
-    rating: 4.7,
-    deliveryTime: "25-35 min",
-    deliveryFee: 3.49,
-    minOrder: 15,
-    distance: "2.5 km",
-    featured: true,
-  },
-  {
-    id: "3",
-    name: "Sushi Express",
-    image: "/placeholder.svg?height=200&width=300",
-    cuisine: "Japanese",
-    rating: 4.8,
-    deliveryTime: "30-40 min",
-    deliveryFee: 4.99,
-    minOrder: 20,
-    distance: "3.0 km",
-    featured: true,
-  },
-  {
-    id: "4",
-    name: "Taco Fiesta",
-    image: "/placeholder.svg?height=200&width=300",
-    cuisine: "Mexican",
-    rating: 4.3,
-    deliveryTime: "15-25 min",
-    deliveryFee: 2.49,
-    minOrder: 12,
-    distance: "1.8 km",
-    featured: false,
-  },
-  {
-    id: "5",
-    name: "Curry House",
-    image: "/placeholder.svg?height=200&width=300",
-    cuisine: "Indian",
-    rating: 4.6,
-    deliveryTime: "25-40 min",
-    deliveryFee: 3.99,
-    minOrder: 18,
-    distance: "2.7 km",
-    featured: false,
-  },
-  {
-    id: "6",
-    name: "Noodle Bar",
-    image: "/placeholder.svg?height=200&width=300",
-    cuisine: "Chinese",
-    rating: 4.4,
-    deliveryTime: "20-35 min",
-    deliveryFee: 3.29,
-    minOrder: 15,
-    distance: "2.2 km",
-    featured: false,
-  },
-]
+// Restaurant data type for the frontend component
+interface RestaurantData {
+  id: string;
+  name: string;
+  image: string;
+  cuisine: string;
+  rating: number;
+  deliveryTime: string;
+  deliveryFee: number;
+  minOrder: number;
+  distance: string;
+  featured?: boolean;
+}
 
-// Mock data for food categories
+// Mock data for food categories (TODO: Replace with API data in the future)
 const categories = [
   { id: "1", name: "Burgers", icon: "🍔" },
   { id: "2", name: "Pizza", icon: "🍕" },
@@ -97,21 +37,66 @@ const categories = [
   { id: "6", name: "Noodles", icon: "🍜" },
   { id: "7", name: "Salads", icon: "🥗" },
   { id: "8", name: "Desserts", icon: "🍰" },
-]
+];
 
 export default function CustomerDashboard() {
-  const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [restaurants, setRestaurants] = useState<RestaurantData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchRestaurants() {
+      try {
+        setLoading(true);
+        setError("");
+
+        // Fetch featured restaurants first
+        const featuredResponse = await restaurantApi.searchRestaurants({
+          sort: "rating", // Sort by highest rated
+          limit: 6, // Limit to 6 restaurants
+        });
+
+        // Transform API restaurant data to the format expected by our component
+        const restaurantData: RestaurantData[] =
+          featuredResponse.data.restaurants.map((restaurant) => ({
+            id: restaurant._id || "",
+            name: restaurant.name,
+            image:
+              restaurant.images?.cover ||
+              "/placeholder.svg?height=200&width=300",
+            cuisine: restaurant.cuisine,
+            rating: restaurant.rating?.average || 0,
+            deliveryTime: "20-30 min", // Default value as API doesn't provide this
+            deliveryFee: 2.99, // Default value as API doesn't provide this
+            minOrder: 10, // Default value as API doesn't provide this
+            distance: "2.5 km", // Default value as API doesn't provide this
+            featured: true, // These are from featured restaurants
+          }));
+
+        setRestaurants(restaurantData);
+      } catch (err) {
+        console.error("Error fetching restaurants:", err);
+        setError("Failed to load restaurants");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRestaurants();
+  }, []);
 
   // Filter restaurants based on active tab and search query
   const filteredRestaurants = restaurants.filter((restaurant) => {
-    const matchesTab = activeTab === "all" || (activeTab === "featured" && restaurant.featured)
+    const matchesTab =
+      activeTab === "all" || (activeTab === "featured" && restaurant.featured);
     const matchesSearch =
       restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      restaurant.cuisine.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesTab && matchesSearch
-  })
+      restaurant.cuisine.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
 
   return (
     <div>
@@ -119,9 +104,12 @@ export default function CustomerDashboard() {
       <section className="mb-8 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white md:p-10">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-4">
-            <h1 className="text-2xl font-bold md:text-3xl">Hello, {user?.name || "Food Lover"}!</h1>
+            <h1 className="text-2xl font-bold md:text-3xl">
+              Hello, {user?.name || "Food Lover"}!
+            </h1>
             <p className="max-w-md text-orange-100">
-              Hungry? We've got you covered. Order delicious food from your favorite restaurants.
+              Hungry? We've got you covered. Order delicious food from your
+              favorite restaurants.
             </p>
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -152,7 +140,9 @@ export default function CustomerDashboard() {
           <MapPin className="h-5 w-5 text-orange-500" />
           <div>
             <p className="text-sm font-medium">Deliver to:</p>
-            <p className="text-sm text-gray-600">123 Main Street, Apt 4B, New York, NY 10001</p>
+            <p className="text-sm text-gray-600">
+              123 Main Street, Apt 4B, New York, NY 10001
+            </p>
           </div>
         </div>
         <Button variant="ghost" size="sm">
@@ -198,10 +188,33 @@ export default function CustomerDashboard() {
             <TabsTrigger value="featured">Featured</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab} className="mt-0">
-            {filteredRestaurants.length === 0 ? (
+            {loading ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-64 animate-pulse rounded-lg bg-gray-200"
+                  ></div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="flex h-40 flex-col items-center justify-center rounded-lg border bg-white">
+                <p className="text-lg font-medium">Error loading restaurants</p>
+                <p className="text-sm text-gray-500">{error}</p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => window.location.reload()}
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : filteredRestaurants.length === 0 ? (
               <div className="flex h-40 flex-col items-center justify-center rounded-lg border bg-white">
                 <p className="text-lg font-medium">No restaurants found</p>
-                <p className="text-sm text-gray-500">Try a different search term</p>
+                <p className="text-sm text-gray-500">
+                  Try a different search term
+                </p>
               </div>
             ) : (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -214,5 +227,5 @@ export default function CustomerDashboard() {
         </Tabs>
       </section>
     </div>
-  )
+  );
 }

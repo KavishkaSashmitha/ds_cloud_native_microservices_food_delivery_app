@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import orderRoutes, { paymentRoutes } from "./orderRoutes";
 
 // Define types based on backend schemas
 // User
@@ -363,6 +364,9 @@ export const restaurantApi = {
   getRestaurantById: (id: string) => 
     api.get<{restaurant: Restaurant, businessHours?: BusinessHours}>(`/restaurants/${id}`),
   
+  getRestaurantByOwnerId: (ownerId: string) => 
+    api.get<{restaurant: Restaurant, businessHours?: BusinessHours}>(`/restaurants/owner/${ownerId}`),
+  
   searchRestaurants: (params: {
     name?: string;
     cuisine?: string;
@@ -394,26 +398,10 @@ export const restaurantApi = {
     api.put<BusinessHours>(`/restaurants/${restaurantId}/hours`, data),
 };
 
-// Order service endpoints
-export const orderApi = {
-  createOrder: (orderData: Partial<Order>) => 
-    api.post<Order>("/orders", orderData),
-  
-  getCustomerOrders: (status?: OrderStatus) => 
-    api.get<Order[]>("/orders/customer", { params: status ? { status } : {} }),
-  
-  getRestaurantOrders: (status?: OrderStatus) => 
-    api.get<Order[]>("/orders/restaurant", { params: status ? { status } : {} }),
-  
-  getOrderDetails: (id: string) => 
-    api.get<Order>(`/orders/${id}`),
-  
-  updateOrderStatus: (id: string, status: OrderStatus) => 
-    api.patch<Order>(`/orders/${id}/status`, { status }),
-  
-  processPayment: (orderId: string, paymentData: Partial<Payment>) => 
-    api.post<Payment>(`/payments/${orderId}`, paymentData),
-};
+// Order service endpoints - Importing from orderRoutes.ts for better organization
+export { orderRoutes, paymentRoutes };
+export const orderApi = orderRoutes;
+export const paymentApi = paymentRoutes;
 
 // Delivery service endpoints
 export const deliveryApi = {

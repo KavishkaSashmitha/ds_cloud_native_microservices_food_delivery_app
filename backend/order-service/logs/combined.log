@@ -1,0 +1,20 @@
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-27 12:33:19"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-27 12:33:23"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 12:51:52"}
+{"level":"error","message":"Create order error: Order validation failed: restaurantId: Cast to ObjectId failed for value \"1\" (type string) at path \"restaurantId\" because of \"BSONError\", items.0.menuItemId: Cast to ObjectId failed for value \"101[{\"name\":\"Size\",\"value\":\"Regular\"}]\" (type string) at path \"menuItemId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-27 12:51:52"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 12:53:06"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 12:53:45"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:02:36"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:02:36"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:02:36"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:02:36"}
+{"level":"info","message":"GET /customer?status=pending&page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:02:39"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:02:39"}
+{"level":"info","message":"GET /customer?status=delivered&page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:02:40"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:02:40"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:02:41"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:02:41"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:03:15"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:03:15"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:03:15"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:03:15"}
