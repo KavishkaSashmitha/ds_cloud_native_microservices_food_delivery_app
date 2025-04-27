@@ -5,7 +5,12 @@ const { authenticateToken, authorizeRoles } = require("../middleware/auth")
 
 const router = express.Router()
 
-// All routes require authentication
+// Public routes that don't require authentication
+router.get("/featured", restaurantController.getFeaturedRestaurants)
+router.get("/:id", restaurantController.getRestaurantById)
+router.get("/", restaurantController.searchRestaurants)
+
+// All routes below require authentication
 router.use(authenticateToken)
 
 // Create restaurant (restaurant owners only)
@@ -26,12 +31,9 @@ router.post(
   restaurantController.createRestaurant,
 )
 
-// Get restaurant by ID (public)
-router.get("/:id", restaurantController.getRestaurantById)
-
 // Get restaurant by owner ID (owner or admin only)
-router.get("/owner/:ownerId", restaurantController.getRestaurantByOwnerId)
 router.get("/owner/me", restaurantController.getRestaurantByOwnerId)
+router.get("/owner/:ownerId", restaurantController.getRestaurantByOwnerId)
 
 // Update restaurant (owner or admin only)
 router.put(
@@ -43,12 +45,6 @@ router.put(
   ],
   restaurantController.updateRestaurant,
 )
-
-// Search restaurants (public)
-router.get("/", restaurantController.searchRestaurants)
-
-// Get featured restaurants (public)
-router.get("/featured", restaurantController.getFeaturedRestaurants)
 
 // Toggle restaurant active status (owner or admin only)
 router.patch("/:id/status", restaurantController.toggleRestaurantStatus)

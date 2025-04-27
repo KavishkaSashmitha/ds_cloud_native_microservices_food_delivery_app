@@ -12,3 +12,8 @@
 {"level":"info","message":"::1 - - [26/Apr/2025:17:48:22 +0000] \"GET /delivery/deliveries HTTP/1.1\" 404 29 \"-\" \"PostmanRuntime/7.43.3\"","service":"delivery-service","timestamp":"2025-04-26 23:18:22"}
 {"level":"info","message":"::1 - - [26/Apr/2025:17:50:06 +0000] \"GET /deliveries HTTP/1.1\" 200 72 \"-\" \"PostmanRuntime/7.43.3\"","service":"delivery-service","timestamp":"2025-04-26 23:20:06"}
 {"level":"info","message":"::1 - - [26/Apr/2025:17:50:17 +0000] \"GET /deliveries HTTP/1.1\" 200 72 \"-\" \"PostmanRuntime/7.43.3\"","service":"delivery-service","timestamp":"2025-04-26 23:20:17"}
+{"level":"info","message":"Delivery Service running on port 3004","service":"delivery-service","timestamp":"2025-04-27 12:08:58"}
+{"level":"info","message":"Connected to MongoDB","service":"delivery-service","timestamp":"2025-04-27 12:09:04"}
+{"level":"info","message":"::1 - - [27/Apr/2025:06:43:47 +0000] \"GET /health HTTP/1.1\" 200 55 \"-\" \"PostmanRuntime/7.43.3\"","service":"delivery-service","timestamp":"2025-04-27 12:13:47"}
+{"level":"warn","message":"Route not found: POST /personnel/register","service":"delivery-service","timestamp":"2025-04-27 12:14:00"}
+{"level":"info","message":"::1 - - [27/Apr/2025:06:44:00 +0000] \"POST /personnel/register HTTP/1.1\" 404 29 \"-\" \"PostmanRuntime/7.43.3\"","service":"delivery-service","timestamp":"2025-04-27 12:14:00"}

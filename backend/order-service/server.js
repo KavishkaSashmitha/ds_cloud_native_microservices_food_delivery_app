@@ -1,58 +1,76 @@
-const express = require("express")
-const cors = require("cors")
-const morgan = require("morgan")
-const mongoose = require("mongoose")
-const dotenv = require("dotenv")
-const logger = require("./utils/logger")
-const orderRoutes = require("./routes/orderRoutes")
-const paymentRoutes = require("./routes/paymentRoutes")
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const orderRoutes = require("./routes/orderRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const logger = require("./utils/logger");
 
 // Load environment variables
-dotenv.config()
+dotenv.config();
 
-const app = express()
-const PORT = process.env.PORT || 3003
+const app = express();
+const PORT = process.env.PORT || 3003;
 
-// Middleware
-app.use(cors())
-app.use(express.json())
-app.use(morgan("combined", { stream: { write: (message) => logger.info(message.trim()) } }))
-
-// Connect to MongoDB
+// Database connection
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
-    logger.info("Connected to MongoDB")
+    logger.info("Connected to MongoDB");
   })
   .catch((err) => {
-    logger.error(`MongoDB connection error: ${err.message}`)
-    process.exit(1)
-  })
+    logger.error(`MongoDB connection error: ${err.message}`);
+    process.exit(1);
+  });
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  
+  // Extract user information from headers (set by API gateway)
+  const userId = req.headers["x-user-id"];
+  const userRole = req.headers["x-user-role"];
+  
+  if (userId && userRole) {
+    req.user = { id: userId, role: userRole };
+  }
+  
+  next();
+});
 
 // Health check endpoint
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "Order Service is running" })
-})
+  res.status(200).json({ status: "OK", service: "Order Service" });
+});
 
 // Routes
-app.use("/orders", orderRoutes)
-app.use("/payments", paymentRoutes)
+app.use("/", orderRoutes);          // Order routes
+app.use("/payments", paymentRoutes); // Payment routes
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  logger.error(`Error: ${err.message}`)
-  res.status(500).json({ message: "Internal Server Error", error: err.message })
-})
-
-// Handle 404 routes
+// 404 handler
 app.use((req, res) => {
-  logger.warn(`Route not found: ${req.method} ${req.url}`)
-  res.status(404).json({ message: "Route not found" })
-})
+  res.status(404).json({ message: "Endpoint not found" });
+});
 
-// Start the server
+// Error handler
+app.use((err, req, res, next) => {
+  logger.error(`Error: ${err.message}`);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal server error",
+  });
+});
+
+// Start server
 app.listen(PORT, () => {
-  logger.info(`Order Service running on port ${PORT}`)
-})
+  logger.info(`Order service running on port ${PORT}`);
+});
 
-module.exports = app
+module.exports = app;

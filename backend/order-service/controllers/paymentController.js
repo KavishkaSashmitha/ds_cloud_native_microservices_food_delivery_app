@@ -221,4 +221,48 @@ exports.getPaymentStatistics = async (req, res) => {
           _id: "$method",
           count: { $sum: 1 },
           total: { $sum: "$amount" },
-        \
+        },
+      },
+    ])
+
+    // Get payments by day (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const paymentsByDay = await Payment.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sevenDaysAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          count: { $sum: 1 },
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    res.status(200).json({
+      totalPayments,
+      paymentsByStatus: paymentsByStatus.reduce((acc, curr) => {
+        acc[curr._id] = { count: curr.count, total: curr.total };
+        return acc;
+      }, {}),
+      paymentsByMethod: paymentsByMethod.reduce((acc, curr) => {
+        acc[curr._id] = { count: curr.count, total: curr.total };
+        return acc;
+      }, {}),
+      paymentsByDay,
+    });
+  } catch (error) {
+    logger.error(`Get payment statistics error: ${error.message}`);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+}

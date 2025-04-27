@@ -1,22 +1,29 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { ArrowLeft, CreditCard, MapPin } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, CreditCard, MapPin } from "lucide-react";
 
-import { useCart } from "@/contexts/cart-context"
-import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Separator } from "@/components/ui/separator"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
+import { useCart } from "@/contexts/cart-context";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { orderApi, paymentApi } from "@/lib/api";
 
 // Mock saved addresses
 const savedAddresses = [
@@ -28,6 +35,7 @@ const savedAddresses = [
     state: "NY",
     zipCode: "10001",
     isDefault: true,
+    coordinates: [-74.005941, 40.712784] as [number, number], // [longitude, latitude]
   },
   {
     id: "2",
@@ -37,13 +45,14 @@ const savedAddresses = [
     state: "NY",
     zipCode: "10002",
     isDefault: false,
+    coordinates: [-73.987465, 40.748817] as [number, number], // [longitude, latitude]
   },
-]
+];
 
-// Mock payment methods
+// Payment methods matching backend PaymentMethod type
 const paymentMethods = [
   {
-    id: "card",
+    id: "credit_card",
     name: "Credit/Debit Card",
     icon: <CreditCard className="h-5 w-5" />,
   },
@@ -52,70 +61,147 @@ const paymentMethods = [
     name: "Cash on Delivery",
     icon: <CreditCard className="h-5 w-5" />,
   },
-]
+];
 
 export default function CheckoutPage() {
-  const router = useRouter()
-  const { cartItems, getCartTotal, clearCart } = useCart()
-  const { user } = useAuth()
-  const { toast } = useToast()
+  const router = useRouter();
+  const { cartItems, getCartTotal, clearCart } = useCart();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [selectedAddressId, setSelectedAddressId] = useState(savedAddresses.find((a) => a.isDefault)?.id || "")
-  const [paymentMethod, setPaymentMethod] = useState("card")
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState(
+    savedAddresses.find((a) => a.isDefault)?.id || ""
+  );
+  const [paymentMethod, setPaymentMethod] = useState("credit_card");
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
     cardName: "",
     expiryDate: "",
     cvv: "",
-  })
-  const [specialInstructions, setSpecialInstructions] = useState("")
+  });
+  const [specialInstructions, setSpecialInstructions] = useState("");
 
-  const subtotal = getCartTotal()
-  const deliveryFee = subtotal > 0 ? 3.99 : 0
-  const tax = subtotal * 0.08
-  const total = subtotal + deliveryFee + tax
+  const subtotal = getCartTotal();
+  const deliveryFee = subtotal > 0 ? 3.99 : 0;
+  const tax = subtotal * 0.08;
+  const total = subtotal + deliveryFee + tax;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsProcessing(true)
+    e.preventDefault();
+    setIsProcessing(true);
 
     try {
-      // Simulate API call to process payment and create order
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Get the selected address
+      const selectedAddress = savedAddresses.find(
+        (address) => address.id === selectedAddressId
+      );
+      if (!selectedAddress) {
+        throw new Error("Please select a delivery address");
+      }
 
-      // Clear cart and redirect to confirmation page
-      clearCart()
+      // Format items for the API
+      const orderItems = cartItems.map((item) => ({
+        menuItemId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        options: item.options?.map((option) => ({
+          name: option.name,
+          value: option.value,
+          price: 0, // Assuming the price is already included in the item price
+        })),
+      }));
 
-      // Generate a random order ID
-      const orderId = Math.random().toString(36).substring(2, 10).toUpperCase()
+      // Create order request
+      const orderData = {
+        restaurantId: cartItems[0].restaurantId,
+        items: orderItems,
+        subtotal,
+        tax,
+        deliveryFee,
+        tip: 0, // Can be added as a feature later
+        total,
+        paymentMethod: paymentMethod as any, // Using the value directly from state
+        deliveryAddress: {
+          street: selectedAddress.address,
+          city: selectedAddress.city,
+          state: selectedAddress.state,
+          zipCode: selectedAddress.zipCode,
+          location: {
+            type: "Point" as const,
+            coordinates: selectedAddress.coordinates,
+          },
+        },
+        deliveryInstructions: "",
+        specialInstructions: specialInstructions,
+      };
 
-      router.push(`/customer/orders/${orderId}?status=success`)
+      // Create order
+      const orderResponse = await orderApi.createOrder(orderData);
+
+      // Process payment if not cash on delivery
+      if (paymentMethod !== "cash") {
+        // Extract card details
+        const paymentDetails = {
+          cardLast4: cardDetails.cardNumber.slice(-4),
+          cardBrand: getCardBrand(cardDetails.cardNumber),
+        };
+
+        // Process payment
+        await paymentApi.processPayment({
+          orderId: orderResponse.data.order._id!,
+          paymentMethod: paymentMethod as any,
+          paymentDetails,
+        });
+      }
+
+      // Clear cart
+      clearCart();
+
+      // Navigate to order details page
+      router.push(
+        `/customer/orders/${orderResponse.data.order._id}?status=success`
+      );
 
       toast({
         title: "Order placed successfully!",
         description: "Your food is being prepared.",
-      })
-    } catch (error) {
+      });
+    } catch (error: any) {
+      console.error("Error creating order:", error);
       toast({
         title: "Failed to place order",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
+
+  // Function to determine card brand from number
+  const getCardBrand = (cardNumber: string): string => {
+    // Very basic detection, can be expanded
+    if (cardNumber.startsWith("4")) return "visa";
+    if (cardNumber.startsWith("5")) return "mastercard";
+    if (cardNumber.startsWith("3")) return "amex";
+    if (cardNumber.startsWith("6")) return "discover";
+    return "unknown";
+  };
 
   if (cartItems.length === 0) {
-    router.push("/customer/cart")
-    return null
+    router.push("/customer/cart");
+    return null;
   }
 
   return (
     <div>
       <div className="mb-6">
-        <Link href="/customer/cart" className="mb-4 flex items-center text-gray-600 hover:text-orange-500">
+        <Link
+          href="/customer/cart"
+          className="mb-4 flex items-center text-gray-600 hover:text-orange-500"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Cart
         </Link>
@@ -134,12 +220,26 @@ export default function CheckoutPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="space-y-4">
+                <RadioGroup
+                  value={selectedAddressId}
+                  onValueChange={setSelectedAddressId}
+                  className="space-y-4"
+                >
                   {savedAddresses.map((address) => (
-                    <div key={address.id} className="flex items-start space-x-2">
-                      <RadioGroupItem value={address.id} id={`address-${address.id}`} className="mt-1" />
+                    <div
+                      key={address.id}
+                      className="flex items-start space-x-2"
+                    >
+                      <RadioGroupItem
+                        value={address.id}
+                        id={`address-${address.id}`}
+                        className="mt-1"
+                      />
                       <div className="flex-1">
-                        <Label htmlFor={`address-${address.id}`} className="flex items-center gap-2 font-medium">
+                        <Label
+                          htmlFor={`address-${address.id}`}
+                          className="flex items-center gap-2 font-medium"
+                        >
                           {address.name}
                           {address.isDefault && (
                             <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-600">
@@ -148,7 +248,8 @@ export default function CheckoutPage() {
                           )}
                         </Label>
                         <p className="text-sm text-gray-600">
-                          {address.address}, {address.city}, {address.state} {address.zipCode}
+                          {address.address}, {address.city}, {address.state}{" "}
+                          {address.zipCode}
                         </p>
                       </div>
                     </div>
@@ -156,7 +257,11 @@ export default function CheckoutPage() {
                 </RadioGroup>
 
                 <div className="mt-4">
-                  <Button variant="outline" type="button" className="text-orange-500">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="text-orange-500"
+                  >
                     + Add New Address
                   </Button>
                 </div>
@@ -172,11 +277,24 @@ export default function CheckoutPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-4">
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={setPaymentMethod}
+                  className="space-y-4"
+                >
                   {paymentMethods.map((method) => (
-                    <div key={method.id} className="flex items-center space-x-2">
-                      <RadioGroupItem value={method.id} id={`payment-${method.id}`} />
-                      <Label htmlFor={`payment-${method.id}`} className="flex items-center gap-2">
+                    <div
+                      key={method.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <RadioGroupItem
+                        value={method.id}
+                        id={`payment-${method.id}`}
+                      />
+                      <Label
+                        htmlFor={`payment-${method.id}`}
+                        className="flex items-center gap-2"
+                      >
                         {method.icon}
                         {method.name}
                       </Label>
@@ -184,7 +302,7 @@ export default function CheckoutPage() {
                   ))}
                 </RadioGroup>
 
-                {paymentMethod === "card" && (
+                {paymentMethod === "credit_card" && (
                   <div className="mt-6 space-y-4">
                     <div className="grid gap-4">
                       <div>
@@ -193,7 +311,12 @@ export default function CheckoutPage() {
                           id="cardNumber"
                           placeholder="1234 5678 9012 3456"
                           value={cardDetails.cardNumber}
-                          onChange={(e) => setCardDetails({ ...cardDetails, cardNumber: e.target.value })}
+                          onChange={(e) =>
+                            setCardDetails({
+                              ...cardDetails,
+                              cardNumber: e.target.value,
+                            })
+                          }
                           required
                         />
                       </div>
@@ -203,7 +326,12 @@ export default function CheckoutPage() {
                           id="cardName"
                           placeholder="John Doe"
                           value={cardDetails.cardName}
-                          onChange={(e) => setCardDetails({ ...cardDetails, cardName: e.target.value })}
+                          onChange={(e) =>
+                            setCardDetails({
+                              ...cardDetails,
+                              cardName: e.target.value,
+                            })
+                          }
                           required
                         />
                       </div>
@@ -214,7 +342,12 @@ export default function CheckoutPage() {
                             id="expiryDate"
                             placeholder="MM/YY"
                             value={cardDetails.expiryDate}
-                            onChange={(e) => setCardDetails({ ...cardDetails, expiryDate: e.target.value })}
+                            onChange={(e) =>
+                              setCardDetails({
+                                ...cardDetails,
+                                expiryDate: e.target.value,
+                              })
+                            }
                             required
                           />
                         </div>
@@ -224,7 +357,12 @@ export default function CheckoutPage() {
                             id="cvv"
                             placeholder="123"
                             value={cardDetails.cvv}
-                            onChange={(e) => setCardDetails({ ...cardDetails, cvv: e.target.value })}
+                            onChange={(e) =>
+                              setCardDetails({
+                                ...cardDetails,
+                                cvv: e.target.value,
+                              })
+                            }
                             required
                           />
                         </div>
@@ -259,10 +397,15 @@ export default function CheckoutPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="mb-2 font-medium">Items ({cartItems.length})</h3>
+                  <h3 className="mb-2 font-medium">
+                    Items ({cartItems.length})
+                  </h3>
                   <div className="space-y-2">
                     {cartItems.map((item) => (
-                      <div key={item.id} className="flex justify-between text-sm">
+                      <div
+                        key={item.id}
+                        className="flex justify-between text-sm"
+                      >
                         <span>
                           {item.quantity}x {item.name}
                         </span>
@@ -297,7 +440,11 @@ export default function CheckoutPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={isProcessing}>
+                <Button
+                  type="submit"
+                  className="w-full bg-orange-500 hover:bg-orange-600"
+                  disabled={isProcessing}
+                >
                   {isProcessing ? "Processing..." : "Place Order"}
                 </Button>
               </CardFooter>
@@ -306,5 +453,5 @@ export default function CheckoutPage() {
         </div>
       </form>
     </div>
-  )
+  );
 }
