@@ -8,6 +8,43 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticateToken);
 
+// Get all ready for pickup orders (for delivery personnel)
+router.get(
+  "/ready-for-pickup",
+  [
+    query("page").optional().isInt({ min: 1 }).withMessage("Valid page number is required"),
+    query("limit").optional().isInt({ min: 1, max: 50 }).withMessage("Valid limit is required"),
+  ],
+  authorizeRoles("delivery"),
+  orderController.getReadyForPickupOrders
+);
+
+// Get nearby orders (for delivery personnel)
+router.get(
+  "/nearby",
+  [
+    query("latitude").notEmpty().isFloat().withMessage("Valid latitude is required"),
+    query("longitude").notEmpty().isFloat().withMessage("Valid longitude is required"),
+    query("maxDistance").optional().isFloat({ min: 0.1 }).withMessage("Valid max distance is required"),
+  ],
+  authorizeRoles("delivery"),
+  orderController.getNearbyOrders
+);
+
+// Get order statistics (admin only)
+router.get("/statistics", authorizeRoles("admin"), orderController.getOrderStatistics);
+
+// Search orders (admin only)
+router.get(
+  "/search",
+  [
+    query("page").optional().isInt({ min: 1 }).withMessage("Valid page number is required"),
+    query("limit").optional().isInt({ min: 1, max: 50 }).withMessage("Valid limit is required"),
+  ],
+  authorizeRoles("admin"),
+  orderController.searchOrders
+);
+
 // Create a new order
 router.post(
   "/",
@@ -115,30 +152,12 @@ router.patch(
   orderController.cancelOrder
 );
 
-// Get order statistics (admin only)
-router.get("/statistics", authorizeRoles("admin"), orderController.getOrderStatistics);
-
-// Get nearby orders (for delivery personnel)
-router.get(
-  "/nearby",
-  [
-    query("latitude").notEmpty().isFloat().withMessage("Valid latitude is required"),
-    query("longitude").notEmpty().isFloat().withMessage("Valid longitude is required"),
-    query("maxDistance").optional().isFloat({ min: 0.1 }).withMessage("Valid max distance is required"),
-  ],
+// Accept an order (for delivery personnel)
+router.post(
+  "/:id/accept",
+  [param("id").notEmpty().withMessage("Order ID is required")],
   authorizeRoles("delivery"),
-  orderController.getNearbyOrders
-);
-
-// Search orders (admin only)
-router.get(
-  "/search",
-  [
-    query("page").optional().isInt({ min: 1 }).withMessage("Valid page number is required"),
-    query("limit").optional().isInt({ min: 1, max: 50 }).withMessage("Valid limit is required"),
-  ],
-  authorizeRoles("admin"),
-  orderController.searchOrders
+  orderController.acceptOrder
 );
 
 module.exports = router;

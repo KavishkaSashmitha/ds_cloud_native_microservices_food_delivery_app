@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Truck } from "lucide-react";
 
@@ -58,6 +58,13 @@ export default function DeliverySetup() {
     licenseNumber: "",
   });
 
+  useEffect(() => {
+    // Check if the user has already completed the setup
+    if (user?.hasCompletedSetup) {
+      router.push("/delivery/dashboard");
+    }
+  }, [user, router]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -103,6 +110,9 @@ export default function DeliverySetup() {
       };
 
       await deliveryApi.registerDeliveryPersonnel(deliveryPersonnelData);
+
+      // Update the user's profile to indicate setup is complete
+      user.hasCompletedSetup = true;
 
       toast({
         title: "Profile created",

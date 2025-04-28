@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { OrderStatus } from "@/lib/api"
 
 interface OrderItem {
   name: string
@@ -24,23 +25,32 @@ interface Order {
   phone: string
 }
 
+interface StatusOption {
+  value: OrderStatus | string
+  label: string
+}
+
 interface OrderCardProps {
   order: Order
-  onUpdateStatus: (orderId: string, newStatus: string) => void
+  onUpdateStatus: (orderId: string, newStatus: OrderStatus) => void
 }
 
 export function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): string => {
     switch (status) {
       case "pending":
         return "bg-yellow-100 text-yellow-800"
+      case "confirmed":
+        return "bg-blue-100 text-blue-800"
       case "preparing":
         return "bg-blue-100 text-blue-800"
-      case "ready":
+      case "ready_for_pickup":
         return "bg-green-100 text-green-800"
-      case "completed":
+      case "out_for_delivery":
+        return "bg-purple-100 text-purple-800"
+      case "delivered":
         return "bg-gray-100 text-gray-800"
       case "cancelled":
         return "bg-red-100 text-red-800"
@@ -49,32 +59,54 @@ export function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
     }
   }
 
-  const getStatusOptions = (currentStatus: string) => {
+  const getStatusOptions = (currentStatus: string): StatusOption[] => {
     switch (currentStatus) {
       case "pending":
         return [
           { value: "pending", label: "Pending" },
-          { value: "preparing", label: "Accept & Prepare" },
+          { value: "confirmed", label: "Confirm Order" },
+          { value: "cancelled", label: "Cancel Order" },
+        ]
+      case "confirmed":
+        return [
+          { value: "confirmed", label: "Confirmed" },
+          { value: "preparing", label: "Start Preparing" },
           { value: "cancelled", label: "Cancel Order" },
         ]
       case "preparing":
         return [
           { value: "preparing", label: "Preparing" },
-          { value: "ready", label: "Ready for Pickup" },
+          { value: "ready_for_pickup", label: "Ready for Pickup" },
           { value: "cancelled", label: "Cancel Order" },
         ]
-      case "ready":
+      case "ready_for_pickup":
         return [
-          { value: "ready", label: "Ready for Pickup" },
-          { value: "completed", label: "Complete Order" },
+          { value: "ready_for_pickup", label: "Ready for Pickup" },
+          { value: "out_for_delivery", label: "Out for Delivery" },
+          { value: "cancelled", label: "Cancel Order" },
         ]
-      case "completed":
-        return [{ value: "completed", label: "Completed" }]
+      case "out_for_delivery":
+        return [
+          { value: "out_for_delivery", label: "Out for Delivery" },
+          { value: "delivered", label: "Delivered" },
+          { value: "cancelled", label: "Cancel Order" },
+        ]
+      case "delivered":
+        return [{ value: "delivered", label: "Delivered" }]
       case "cancelled":
         return [{ value: "cancelled", label: "Cancelled" }]
       default:
         return []
     }
+  }
+
+  // Format status for display
+  const formatStatus = (status: string): string => {
+    return status
+      .replace(/_/g, " ")
+      .split(" ")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
   }
 
   return (
@@ -85,7 +117,7 @@ export function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
             <div className="flex items-center gap-2">
               <span className="font-semibold">{order.id}</span>
               <span className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(order.status)}`}>
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                {formatStatus(order.status)}
               </span>
             </div>
             <span className="text-sm text-muted-foreground">{order.time}</span>
@@ -146,12 +178,12 @@ export function OrderCard({ order, onUpdateStatus }: OrderCardProps) {
       </CardContent>
       <CardFooter className="flex justify-between p-4">
         <div className="text-sm text-muted-foreground">
-          {order.status !== "completed" && order.status !== "cancelled" ? "Update order status:" : "Order closed"}
+          {order.status !== "delivered" && order.status !== "cancelled" ? "Update order status:" : "Order closed"}
         </div>
         <Select
           value={order.status}
-          onValueChange={(value) => onUpdateStatus(order.id, value)}
-          disabled={order.status === "completed" || order.status === "cancelled"}
+          onValueChange={(value) => onUpdateStatus(order.id, value as OrderStatus)}
+          disabled={order.status === "delivered" || order.status === "cancelled"}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select status" />

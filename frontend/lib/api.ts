@@ -299,20 +299,20 @@ const api: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Add request interceptor for authentication
+// Ensure Axios interceptor handles authentication and remove explicit token usage
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     console.log(`Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`, config.data);
-    
+
     // Get token from localStorage
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    
+
     // If token exists, add it to the request headers
     if (token) {
       config.headers = config.headers || {};
       config.headers["Authorization"] = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error) => {
