@@ -4,6 +4,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const addressRoutes = require("./routes/addressRoutes");
 const logger = require("./utils/logger");
 
 // Load environment variables
@@ -52,8 +53,9 @@ app.get("/health", (req, res) => {
 });
 
 // Routes
-app.use("/", orderRoutes);          // Order routes
+app.use("/orders", orderRoutes);          // Order routes
 app.use("/payments", paymentRoutes); // Payment routes
+app.use("/addresses", addressRoutes); // Address routes
 
 // 404 handler
 app.use((req, res) => {

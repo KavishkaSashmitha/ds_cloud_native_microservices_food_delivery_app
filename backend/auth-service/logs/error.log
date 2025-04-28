@@ -17,3 +17,6 @@
 {"level":"error","message":"Registration error: E11000 duplicate key error collection: test.users index: username_1 dup key: { username: null }","service":"auth-service","timestamp":"2025-04-26 23:08:42"}
 {"level":"error","message":"Registration error: E11000 duplicate key error collection: test.users index: username_1 dup key: { username: null }","service":"auth-service","timestamp":"2025-04-26 23:09:14"}
 {"level":"error","message":"Registration error: E11000 duplicate key error collection: test.users index: username_1 dup key: { username: null }","service":"auth-service","timestamp":"2025-04-26 23:11:57"}
+{"level":"error","message":"Get user profile error: getaddrinfo ENOTFOUND fooddelivery-shard-00-00.ouayq.mongodb.net","service":"auth-service","timestamp":"2025-04-27 22:12:53"}
+{"level":"error","message":"Login error: getaddrinfo ENOTFOUND fooddelivery-shard-00-00.ouayq.mongodb.net","service":"auth-service","timestamp":"2025-04-27 22:13:27"}
+{"level":"error","message":"Authentication error: jwt expired","service":"auth-service","timestamp":"2025-04-29 01:39:34"}

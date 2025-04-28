@@ -18,3 +18,108 @@
 {"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:03:15"}
 {"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 14:03:15"}
 {"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 14:03:15"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-27 15:54:09"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-27 15:54:10"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:41:23"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:42:01"}
+{"level":"error","message":"Authentication error: jwt malformed","service":"order-service","timestamp":"2025-04-27 16:42:01"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:42:44"}
+{"level":"error","message":"Authentication error: jwt malformed","service":"order-service","timestamp":"2025-04-27 16:42:44"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:44:09"}
+{"level":"error","message":"Authentication error: invalid token","service":"order-service","timestamp":"2025-04-27 16:44:09"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:45:31"}
+{"level":"error","message":"Authentication error: jwt malformed","service":"order-service","timestamp":"2025-04-27 16:45:31"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:49:05"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:51:00"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:51:52"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 16:59:07"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:03:54"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:03:58"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:06:26"}
+{"level":"error","message":"Create order error: Order validation failed: deliveryAddress.location.coordinates: Path `deliveryAddress.location.coordinates` is required.","service":"order-service","timestamp":"2025-04-27 17:06:26"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:08:23"}
+{"level":"error","message":"Create order error: Order validation failed: deliveryAddress.location.coordinates: Path `deliveryAddress.location.coordinates` is required.","service":"order-service","timestamp":"2025-04-27 17:08:23"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:08:50"}
+{"level":"error","message":"Create order error: Order validation failed: deliveryAddress.location.coordinates: Path `deliveryAddress.location.coordinates` is required.","service":"order-service","timestamp":"2025-04-27 17:08:50"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:10:17"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:10:50"}
+{"level":"error","message":"Create order error: Order validation failed: deliveryAddress.location.coordinates: Path `deliveryAddress.location.coordinates` is required.","service":"order-service","timestamp":"2025-04-27 17:10:50"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:14:01"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:14:14"}
+{"level":"error","message":"Create order error: Order validation failed: deliveryAddress.location.coordinates: Path `deliveryAddress.location.coordinates` is required.","service":"order-service","timestamp":"2025-04-27 17:14:14"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:15:17"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 17:18:05"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-27 17:18:06"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 17:21:43"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 17:21:43"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 17:21:43"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 17:21:43"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 22:24:13"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-27 22:41:04"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 22:52:13"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 22:52:13"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-27 22:52:13"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-27 22:52:13"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-27 23:31:07"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-27 23:31:09"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-27 23:42:35"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-27 23:42:36"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-27 23:49:59"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-27 23:50:00"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-27 23:53:14"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-27 23:53:16"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-27 23:53:50"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-28 02:09:40"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-28 02:09:42"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 02:10:47"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:24:16"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:31:07"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:34:23"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:38:43"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:41:23"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 02:43:58"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:43:58"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 02:53:54"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"addresses\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-28 02:53:54"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 02:53:54"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"addresses\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-28 02:53:54"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 02:54:42"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:54:42"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 02:56:00"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"addresses\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-28 02:56:00"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 02:56:00"}
+{"level":"error","message":"Get order error: Cast to ObjectId failed for value \"addresses\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-28 02:56:00"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 02:56:05"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 02:56:05"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-28 03:01:48"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-28 03:01:50"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 03:02:08"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 03:02:08"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 03:02:39"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 03:02:39"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-28 05:25:28"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-28 05:25:30"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 05:25:44"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 05:25:44"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 05:26:47"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 05:26:47"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-28 05:38:17"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-28 05:38:18"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 05:38:36"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 05:38:36"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 05:38:58"}
+{"level":"error","message":"Error: Address validation failed: user: Address must belong to a user","service":"order-service","timestamp":"2025-04-28 05:38:58"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 05:38:58"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 05:41:08"}
+{"level":"info","message":"GET /addresses","service":"order-service","timestamp":"2025-04-28 05:41:08"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 05:41:14"}
+{"level":"error","message":"Error: Address validation failed: user: Address must belong to a user","service":"order-service","timestamp":"2025-04-28 05:41:14"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 05:41:14"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 05:44:17"}
+{"level":"error","message":"Error: Address validation failed: user: Address must belong to a user","service":"order-service","timestamp":"2025-04-28 05:44:17"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 05:44:17"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-28 20:18:01"}
+{"level":"error","message":"Error: Address validation failed: user: Address must belong to a user","service":"order-service","timestamp":"2025-04-28 20:18:01"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 20:18:01"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 01:37:56"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 01:37:57"}

@@ -24,9 +24,28 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { orderApi, paymentApi } from "@/lib/api";
+import  AddAddressModal  from "@/components/add-new-address"
 
-// Mock saved addresses
-const savedAddresses = [
+
+
+// Payment methods matching backend PaymentMethod type
+const paymentMethods = [
+  {
+    id: "credit_card",
+    name: "Credit/Debit Card",
+    icon: <CreditCard className="h-5 w-5" />,
+  },
+  {
+    id: "cash",
+    name: "Cash on Delivery",
+    icon: <CreditCard className="h-5 w-5" />,
+  },
+];
+
+export default function CheckoutPage() {
+
+  // Mock saved addresses
+const [savedAddresses, setSavedAddresses] = useState([
   {
     id: "1",
     name: "Home",
@@ -47,23 +66,8 @@ const savedAddresses = [
     isDefault: false,
     coordinates: [-73.987465, 40.748817] as [number, number], // [longitude, latitude]
   },
-];
+]);
 
-// Payment methods matching backend PaymentMethod type
-const paymentMethods = [
-  {
-    id: "credit_card",
-    name: "Credit/Debit Card",
-    icon: <CreditCard className="h-5 w-5" />,
-  },
-  {
-    id: "cash",
-    name: "Cash on Delivery",
-    icon: <CreditCard className="h-5 w-5" />,
-  },
-];
-
-export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
@@ -74,6 +78,7 @@ export default function CheckoutPage() {
     savedAddresses.find((a) => a.isDefault)?.id || ""
   );
   const [paymentMethod, setPaymentMethod] = useState("credit_card");
+  const [showAddressModal, setShowAddressModal] = useState(false);
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
     cardName: "",
@@ -195,6 +200,22 @@ export default function CheckoutPage() {
     return null;
   }
 
+  const handleAddNewAddress = () => {
+    setShowAddressModal(true);
+  };
+
+  type Address = {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    isDefault: boolean;
+    coordinates: [number, number];
+  };
+  
+
   return (
     <div>
       <div className="mb-6">
@@ -261,6 +282,7 @@ export default function CheckoutPage() {
                     variant="outline"
                     type="button"
                     className="text-orange-500"
+                    onClick={() => setShowAddressModal(true)}
                   >
                     + Add New Address
                   </Button>
@@ -305,7 +327,7 @@ export default function CheckoutPage() {
                 {paymentMethod === "credit_card" && (
                   <div className="mt-6 space-y-4">
                     <div className="grid gap-4">
-                      <div>
+                      {/* <div>
                         <Label htmlFor="cardNumber">Card Number</Label>
                         <Input
                           id="cardNumber"
@@ -319,8 +341,8 @@ export default function CheckoutPage() {
                           }
                           required
                         />
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <Label htmlFor="cardName">Name on Card</Label>
                         <Input
                           id="cardName"
@@ -334,9 +356,9 @@ export default function CheckoutPage() {
                           }
                           required
                         />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
+                      </div> */}
+                      {/* <div className="grid grid-cols-2 gap-4"> */}
+                        {/* <div>
                           <Label htmlFor="expiryDate">Expiry Date</Label>
                           <Input
                             id="expiryDate"
@@ -366,7 +388,7 @@ export default function CheckoutPage() {
                             required
                           />
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 )}
@@ -450,6 +472,36 @@ export default function CheckoutPage() {
               </CardFooter>
             </Card>
           </div>
+
+          {/* Modal */}
+      {showAddressModal && (
+        <AddAddressModal
+          onClose={() => setShowAddressModal(false)}
+          onAddressAdded={(newAddress) => {
+            setSavedAddresses((prev) => [
+              ...prev,
+              {
+                id: crypto.randomUUID(),
+                name: "New Address",
+                address: newAddress.street,
+                city: newAddress.city,
+                state: newAddress.state,
+                zipCode: newAddress.zipCode,
+                isDefault: prev.length === 0,
+                coordinates: [
+                  parseFloat(newAddress.latitude) || 0,
+                  parseFloat(newAddress.longitude) || 0,
+                ],
+              }
+            ]);
+            setShowAddressModal(false);
+          }}
+        />
+)}
+
+
+
+
         </div>
       </form>
     </div>
