@@ -1704,3 +1704,216 @@
 {"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 21:46:03"}
 {"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 21:46:03"}
 {"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 21:46:04"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 21:48:57"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 21:48:57"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 21:48:57"}
+{"level":"info","message":"GET /orders/ready-for-pickup","service":"api-gateway","timestamp":"2025-04-28 21:49:01"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/ready-for-pickup","service":"api-gateway","timestamp":"2025-04-28 21:49:01"}
+{"level":"info","message":"POST /orders/mock-1/accept","service":"api-gateway","timestamp":"2025-04-28 21:49:08"}
+{"level":"info","message":"Proxying request to Order Service: POST /orders/mock-1/accept","service":"api-gateway","timestamp":"2025-04-28 21:49:08"}
+{"level":"info","message":"POST /orders/mock-1/accept","service":"api-gateway","timestamp":"2025-04-28 21:49:14"}
+{"level":"info","message":"Proxying request to Order Service: POST /orders/mock-1/accept","service":"api-gateway","timestamp":"2025-04-28 21:49:14"}
+{"level":"info","message":"GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:19:52"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:19:52"}
+{"level":"info","message":"GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:19:53"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:19:53"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:19:59"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:19:59"}
+{"level":"info","message":"GET /restaurants/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:20:01"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:20:01"}
+{"level":"info","message":"GET /menus/restaurant/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:20:02"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:20:02"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:20:03"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:20:03"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:20:03"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:20:03"}
+{"level":"info","message":"GET /orders/ready-for-pickup","service":"api-gateway","timestamp":"2025-04-28 22:25:22"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/ready-for-pickup","service":"api-gateway","timestamp":"2025-04-28 22:25:22"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:28:22"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:28:22"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:28:23"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:23"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:23"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:23"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:23"}
+{"level":"info","message":"GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 22:28:29"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 22:28:29"}
+{"level":"info","message":"GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 22:28:29"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 22:28:29"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:32"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:32"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:32"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:28:32"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:31:13"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:31:13"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:31:13"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:13"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:13"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:13"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:13"}
+{"level":"info","message":"GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:31:18"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:21"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:21"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:21"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:21"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:31:25"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:31:25"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:31:26"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:26"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:26"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:26"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:31:26"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:34:19"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:34:19"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:34:19"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:34:19"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:34:19"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:34:19"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:34:19"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:35:01"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:35:01"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:35:01"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:35:02"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:35:02"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:35:02"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:35:02"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:35:35"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:35:36"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:35:36"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:36:31"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:36:31"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:36:32"}
+{"level":"info","message":"GET /deliveries/personnel/profile","service":"api-gateway","timestamp":"2025-04-28 22:36:45"}
+{"level":"info","message":"GET /deliveries/personnel/profile","service":"api-gateway","timestamp":"2025-04-28 22:36:45"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:37:01"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:37:01"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:37:01"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:37:02"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:37:02"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:37:02"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:37:02"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:37:20"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:37:20"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:37:20"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:38:04"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:38:04"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:38:04"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:04"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:04"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:04"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:04"}
+{"level":"info","message":"GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e1ceeb77fd0ee62618829","service":"api-gateway","timestamp":"2025-04-28 22:38:07"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:09"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:09"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:09"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:09"}
+{"level":"info","message":"GET /restaurants/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:14"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:14"}
+{"level":"info","message":"GET /restaurants/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:14"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:14"}
+{"level":"info","message":"GET /menus/restaurant/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"GET /menus/restaurant/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680dee9cc5a1839db6b4639a","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 22:38:15"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:43:47"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:43:47"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 22:43:47"}
+{"level":"info","message":"GET /deliveries/personnel/profile","service":"api-gateway","timestamp":"2025-04-28 22:43:48"}
+{"level":"info","message":"GET /deliveries/personnel/profile","service":"api-gateway","timestamp":"2025-04-28 22:43:48"}
+{"level":"info","message":"GET /orders/ready-for-pickup","service":"api-gateway","timestamp":"2025-04-28 22:46:34"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/ready-for-pickup","service":"api-gateway","timestamp":"2025-04-28 22:46:34"}
+{"level":"info","message":"POST /orders/mock-1/accept","service":"api-gateway","timestamp":"2025-04-28 22:46:39"}
+{"level":"info","message":"Proxying request to Order Service: POST /orders/mock-1/accept","service":"api-gateway","timestamp":"2025-04-28 22:46:39"}
+{"level":"info","message":"GET /orders/customer?page=1&limit=20","service":"api-gateway","timestamp":"2025-04-28 22:49:03"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/customer?page=1&limit=20","service":"api-gateway","timestamp":"2025-04-28 22:49:03"}
+{"level":"info","message":"GET /orders/restaurant/680e650a77c2d666fa801b23?status=pending&page=1&limit=10","service":"api-gateway","timestamp":"2025-04-28 22:49:24"}
+{"level":"error","message":"Authentication error: jwt expired","service":"api-gateway","timestamp":"2025-04-28 22:49:24"}
+{"level":"info","message":"POST /auth/login","service":"api-gateway","timestamp":"2025-04-28 22:52:49"}
+{"level":"info","message":"Proxying request to Auth Service: POST /auth/login","service":"api-gateway","timestamp":"2025-04-28 22:52:49"}
+{"level":"info","message":"Received response from Auth Service: 200","service":"api-gateway","timestamp":"2025-04-28 22:52:49"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:53:27"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:53:27"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:53:27"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:53:27"}
+{"level":"info","message":"GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 22:53:27"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 22:53:27"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:54:39"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 22:54:39"}
+{"level":"info","message":"Received response from Auth Service: 200","service":"api-gateway","timestamp":"2025-04-28 22:54:39"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:54:40"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:54:40"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:54:40"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 22:54:40"}
+{"level":"info","message":"GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 22:54:40"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 22:54:40"}
+{"level":"info","message":"GET /orders/customer?status=pending&page=1&limit=20","service":"api-gateway","timestamp":"2025-04-28 23:01:12"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/customer?status=pending&page=1&limit=20","service":"api-gateway","timestamp":"2025-04-28 23:01:12"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:02:31"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:02:31"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:02:31"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:02:31"}
+{"level":"info","message":"GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 23:02:32"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 23:02:32"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:02:33"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:02:33"}
+{"level":"info","message":"GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:01"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:01"}
+{"level":"info","message":"GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:01"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:01"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:18"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:18"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:18"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:18"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:30"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:30"}
+{"level":"info","message":"GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:30"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants?sort=rating&limit=6","service":"api-gateway","timestamp":"2025-04-28 23:06:30"}
+{"level":"info","message":"GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /menus/restaurant/680e01d2f4fd197e548bff1d","service":"api-gateway","timestamp":"2025-04-28 23:06:33"}
+{"level":"info","message":"POST /orders","service":"api-gateway","timestamp":"2025-04-28 23:06:53"}
+{"level":"info","message":"Proxying request to Order Service: POST /orders","service":"api-gateway","timestamp":"2025-04-28 23:06:53"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:07:54"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:07:54"}
+{"level":"info","message":"GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:07:54"}
+{"level":"info","message":"Proxying request to Restaurant Service: GET /restaurants/owner/me","service":"api-gateway","timestamp":"2025-04-28 23:07:54"}
+{"level":"info","message":"GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 23:07:54"}
+{"level":"info","message":"Proxying request to Order Service: GET /orders/restaurant/680e650a77c2d666fa801b23","service":"api-gateway","timestamp":"2025-04-28 23:07:54"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:08:10"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:08:10"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 23:08:10"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:08:23"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:08:23"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 23:08:23"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:08:45"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:08:45"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 23:08:45"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:12:46"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:12:46"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 23:12:47"}
+{"level":"info","message":"GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:17:22"}
+{"level":"info","message":"Proxying request to Auth Service: GET /auth/users/profile","service":"api-gateway","timestamp":"2025-04-28 23:17:22"}
+{"level":"info","message":"Received response from Auth Service: 304","service":"api-gateway","timestamp":"2025-04-28 23:17:22"}

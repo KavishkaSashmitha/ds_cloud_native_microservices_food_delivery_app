@@ -60,9 +60,24 @@ export default function DeliverySetup() {
 
   useEffect(() => {
     // Check if the user has already completed the setup
-    if (user?.hasCompletedSetup) {
-      router.push("/delivery/dashboard");
-    }
+    const checkDeliverySetup = async () => {
+      if (user?._id) {
+        try {
+          // Use getDeliveryPersonnelProfile instead of getDeliveryByUser
+          const response = await deliveryApi.getDeliveryPersonnelProfile();
+
+          // If the profile exists, redirect to the dashboard
+          if (response.data) {
+            router.push("/delivery/dashboard");
+          }
+        } catch (error) {
+          // No delivery profile exists, continue with setup
+          console.log("No delivery profile found, proceeding with setup");
+        }
+      }
+    };
+
+    checkDeliverySetup();
   }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +127,8 @@ export default function DeliverySetup() {
       await deliveryApi.registerDeliveryPersonnel(deliveryPersonnelData);
 
       // Update the user's profile to indicate setup is complete
-      user.hasCompletedSetup = true;
+      // Instead of directly modifying the user object, we should update it through the API
+      // and the auth context will handle the updated user data on the next fetch
 
       toast({
         title: "Profile created",

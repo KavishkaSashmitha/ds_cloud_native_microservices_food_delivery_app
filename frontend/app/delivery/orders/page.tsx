@@ -24,7 +24,9 @@ export default function DeliveryOrdersPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Active Delivery Orders</h1>
-        <p className="text-gray-600">Manage and track your active delivery orders</p>
+        <p className="text-gray-600">
+          Manage and track your active delivery orders
+        </p>
       </div>
 
       <div className="mb-6 flex items-center gap-4">
@@ -42,7 +44,9 @@ export default function DeliveryOrdersPage() {
       {filteredOrders.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10">
-            <p className="mb-2 text-center text-lg font-medium">No active orders found</p>
+            <p className="mb-2 text-center text-lg font-medium">
+              No active orders found
+            </p>
             <p className="text-center text-gray-500">
               {searchQuery
                 ? "Try a different search term"
@@ -53,7 +57,11 @@ export default function DeliveryOrdersPage() {
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => (
-            <DeliveryOrderCard key={order.id} order={order} showActions={true} />
+            <DeliveryOrderCard
+              key={order.id}
+              order={order}
+              showActions={true}
+            />
           ))}
         </div>
       )}

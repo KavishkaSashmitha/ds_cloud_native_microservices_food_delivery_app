@@ -177,7 +177,7 @@ exports.getOrdersByCustomer = async (req, res) => {
 exports.getOrdersByRestaurant = async (req, res) => {
   try {
     const { restaurantId } = req.params
-    const { status, page = 1, limit = 10 } = req.query
+    const { status, page = 1, limit = 100 } = req.query
 
     // Check if user has permission to view these orders
     if (req.user.role !== "admin" && req.user.role !== "restaurant") {
@@ -227,21 +227,36 @@ exports.getOrdersByDeliveryPerson = async (req, res) => {
     const { status, page = 1, limit = 10 } = req.query
 
     // Check if user has permission to view these orders
-    if (req.user.role !== "admin" && req.user.role !== "delivery" && req.user.id !== deliveryPersonId) {
+    if (req.user.role !== "admin" && req.user.role !== "delivery") {
       return res.status(403).json({ message: "Not authorized to view these orders" })
+    }
+
+    // If delivery personnel user, check if they are accessing their own orders
+    if (req.user.role === "delivery" && req.user.id !== deliveryPersonId) {
+      return res.status(403).json({ message: "Not authorized to view other delivery personnel orders" })
     }
 
     // Build query
     const query = { deliveryPersonId }
+    
+    // Filter by status if provided, otherwise include all valid delivery statuses
     if (status) {
       query.status = status
+    } else {
+      // Include orders that are in delivery-related statuses
+      query.status = { 
+        $in: ["out_for_delivery", "picked_up", "delivered", "ready_for_pickup"] 
+      }
     }
 
     // Pagination
     const skip = (Number.parseInt(page) - 1) * Number.parseInt(limit)
 
     // Get orders
-    const orders = await Order.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number.parseInt(limit))
+    const orders = await Order.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number.parseInt(limit))
 
     // Get total count
     const total = await Order.countDocuments(query)
