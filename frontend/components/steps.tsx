@@ -1,87 +1,102 @@
-import React from "react"
-import { cn } from "@/lib/utils"
+"use client";
 
-interface StepsProps {
-  currentStep: number
-  children: React.ReactNode
-}
+import { CheckCircle2, Circle } from "lucide-react";
+import { type PropsWithChildren } from "react";
 
 interface StepProps {
-  title: string
-  description?: string
-}
-
-export function Steps({ currentStep, children }: StepsProps) {
-  // Count the number of steps
-  const steps = React.Children.toArray(children)
-  const totalSteps = steps.length
-
-  return (
-    <div className="space-y-4">
-      {React.Children.map(children, (child, index) => {
-        // Check if the child is a valid React element
-        if (!React.isValidElement(child)) return null
-
-        // Determine the status of this step
-        let status: "completed" | "current" | "upcoming" = "upcoming"
-        if (index < currentStep) status = "completed"
-        if (index === currentStep) status = "current"
-
-        // Clone the child with additional props
-        return React.cloneElement(child, {
-          status,
-          stepNumber: index + 1,
-          isLastStep: index === totalSteps - 1,
-        })
-      })}
-    </div>
-  )
+  title: string;
+  description?: string;
+  active?: boolean;
+  completed?: boolean;
+  index: number;
 }
 
 export function Step({
   title,
   description,
-  status,
-  stepNumber,
-  isLastStep,
-}: StepProps & {
-  status?: "completed" | "current" | "upcoming"
-  stepNumber?: number
-  isLastStep?: boolean
-}) {
+  active = false,
+  completed = false,
+  index,
+}: StepProps) {
   return (
-    <div className="flex">
-      {/* Step indicator */}
+    <div className="flex items-start gap-4">
       <div className="flex flex-col items-center">
-        <div
-          className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-medium",
-            status === "completed" && "border-orange-500 bg-orange-500 text-white",
-            status === "current" && "border-orange-500 text-orange-500",
-            status === "upcoming" && "border-gray-300 text-gray-300",
+        <div className="relative flex h-8 w-8 items-center justify-center rounded-full">
+          {completed ? (
+            <CheckCircle2 className="h-8 w-8 text-green-500" />
+          ) : (
+            <Circle
+              className={`h-8 w-8 ${
+                active ? "text-orange-500" : "text-gray-400"
+              }`}
+            />
           )}
-        >
-          {stepNumber}
+          <div
+            className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-medium ${
+              active
+                ? "text-orange-500"
+                : completed
+                ? "text-white"
+                : "text-gray-500"
+            }`}
+          >
+            {completed ? "" : index + 1}
+          </div>
         </div>
-        {!isLastStep && (
-          <div className={cn("h-full w-0.5", status === "completed" ? "bg-orange-500" : "bg-gray-200")} />
-        )}
+        {/* Line connector */}
       </div>
-
-      {/* Step content */}
-      <div className="ml-4 pb-8">
-        <p
-          className={cn(
-            "font-medium",
-            status === "completed" && "text-orange-500",
-            status === "current" && "text-orange-500",
-            status === "upcoming" && "text-gray-500",
-          )}
+      <div className="flex flex-col">
+        <h3
+          className={`font-medium ${
+            active || completed ? "text-black" : "text-gray-500"
+          }`}
         >
           {title}
-        </p>
-        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+        </h3>
+        {description && (
+          <p
+            className={`text-sm ${
+              active || completed ? "text-gray-600" : "text-gray-400"
+            }`}
+          >
+            {description}
+          </p>
+        )}
       </div>
     </div>
-  )
+  );
+}
+
+interface StepsProps {
+  currentStep: number;
+  steps: {
+    title: string;
+    description?: string;
+  }[];
+}
+
+export function Steps({ currentStep, steps }: StepsProps) {
+  return (
+    <div className="flex flex-col gap-8">
+      {steps.map((step, index) => (
+        <Step
+          key={index}
+          title={step.title}
+          description={step.description}
+          active={currentStep === index}
+          completed={currentStep > index}
+          index={index}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function StepContent({
+  step,
+  currentStep,
+  children,
+}: PropsWithChildren<{ step: number; currentStep: number }>) {
+  if (step !== currentStep) return null;
+  return <div className="mt-4">{children}</div>;
 }

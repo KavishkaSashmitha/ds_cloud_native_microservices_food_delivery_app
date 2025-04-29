@@ -73,6 +73,9 @@ const deliverySchema = new mongoose.Schema({
     type: Number, // in minutes
     required: true,
   },
+  currentETA: {
+    type: Number, // current estimated arrival time in minutes
+  },
   actualDeliveryTime: {
     type: Number, // in minutes
   },
@@ -99,8 +102,24 @@ const deliverySchema = new mongoose.Schema({
   cancellationReason: {
     type: String,
   },
+  feedback: {
+    type: String,
+  },
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+  },
   notes: {
     type: String,
+  },
+  lastLocationUpdate: {
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+    },
+    timestamp: {
+      type: Date,
+    }
   },
   createdAt: {
     type: Date,
@@ -117,6 +136,10 @@ deliverySchema.index({ deliveryPersonnelId: 1 })
 deliverySchema.index({ status: 1 })
 deliverySchema.index({ restaurantId: 1 })
 deliverySchema.index({ customerId: 1 })
+
+// Create geospatial indexes for location queries
+deliverySchema.index({ "restaurantLocation": "2dsphere" })
+deliverySchema.index({ "customerLocation": "2dsphere" })
 
 const Delivery = mongoose.model("Delivery", deliverySchema)
 

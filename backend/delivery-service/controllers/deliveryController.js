@@ -115,47 +115,157 @@ const findAndAssignDeliveryPersonnel = async (deliveryId) => {
       throw new Error("Delivery not found")
     }
 
-    // Find available delivery personnel within 5km of the restaurant
+    // Find available delivery personnel within 10km of the restaurant
     const availablePersonnel = await DeliveryPersonnel.find({
       isAvailable: true,
       isActive: true,
       currentLocation: {
         $near: {
           $geometry: delivery.restaurantLocation,
-          $maxDistance: 5000, // 5km in meters
+          $maxDistance: 10000, // 10km in meters
         },
       },
     }).sort({ lastLocationUpdateTime: -1 })
 
     if (availablePersonnel.length === 0) {
       logger.info(`No available delivery personnel found for delivery ${deliveryId}`)
-      return
+      return null
     }
 
-    // Assign to the first available personnel
-    const assignedPersonnel = availablePersonnel[0]
+    // Score each available delivery person based on multiple factors
+    const scoredPersonnel = availablePersonnel.map(person => {
+      // Calculate distance from restaurant in kilometers
+      const distanceToRestaurant = 
+        geolib.getDistance(
+          { 
+            latitude: person.currentLocation.coordinates[1], 
+            longitude: person.currentLocation.coordinates[0] 
+          },
+          { 
+            latitude: delivery.restaurantLocation.coordinates[1], 
+            longitude: delivery.restaurantLocation.coordinates[0] 
+          }
+        ) / 1000;
 
-    delivery.deliveryPersonnelId = assignedPersonnel.userId
+      // Calculate score based on multiple factors:
+      // 1. Distance (closer is better)
+      // 2. Driver rating (higher is better)
+      // 3. Recent activity (more recent location update is better)
+
+      // Distance score - max 50 points (lower distance = higher score)
+      const distanceScore = Math.max(0, 50 - (distanceToRestaurant * 5));
+      
+      // Rating score - max 30 points
+      const ratingScore = person.rating * 6; // 5-star rating gives 30 points
+      
+      // Recency score - max 20 points
+      const minutesAgo = (new Date() - person.lastLocationUpdateTime) / (60 * 1000);
+      const recencyScore = Math.max(0, 20 - minutesAgo);
+      
+      // Calculate total score
+      const totalScore = distanceScore + ratingScore + recencyScore;
+      
+      return {
+        personnel: person,
+        score: totalScore,
+        distanceToRestaurant
+      };
+    });
+
+    // Sort by score (highest first)
+    scoredPersonnel.sort((a, b) => b.score - a.score);
+    
+    // Get the highest scoring delivery person
+    const bestMatch = scoredPersonnel[0];
+    logger.info(`Selected delivery personnel ${bestMatch.personnel.userId} with score ${bestMatch.score.toFixed(2)} at ${bestMatch.distanceToRestaurant.toFixed(2)}km distance`);
+
+    // Assign to the selected personnel
+    const assignedPersonnel = bestMatch.personnel;
+    delivery.deliveryPersonnelId = assignedPersonnel.userId;
+    delivery.status = "assigned";
+    delivery.assignedAt = new Date();
+    delivery.updatedAt = new Date();
+
+    await delivery.save();
+
+    // Update delivery personnel status
+    assignedPersonnel.isAvailable = false;
+    await assignedPersonnel.save();
+
+    logger.info(`Delivery ${deliveryId} assigned to personnel ${assignedPersonnel.userId}`);
+
+    // Notify the delivery personnel through WebSockets (if available)
+    try {
+      const io = require("../utils/socketHandler").getIO();
+      if (io) {
+        io.to(`driver_${assignedPersonnel.userId}`).emit("new_delivery_assignment", {
+          deliveryId: delivery._id,
+          orderId: delivery.orderId,
+          restaurantName: delivery.restaurantName,
+          restaurantAddress: delivery.restaurantAddress,
+          customerName: delivery.customerName,
+          customerAddress: delivery.customerAddress
+        });
+        logger.info(`WebSocket notification sent to delivery personnel ${assignedPersonnel.userId}`);
+      }
+    } catch (error) {
+      logger.error(`WebSocket notification error: ${error.message}`);
+    }
+
+    return delivery;
+  } catch (error) {
+    logger.error(`Find and assign delivery personnel error: ${error.message}`);
+    throw error;
+  }
+}
+
+// Accept a delivery assignment API endpoint
+exports.acceptDeliveryAssignment = async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { orderId } = req.body
+    
+    // Only delivery personnel can accept assignments
+    if (req.user.role !== "delivery") {
+      return res.status(403).json({ message: "Not authorized to accept delivery assignments" })
+    }
+    
+    // Find the delivery for this order
+    const delivery = await Delivery.findOne({ orderId })
+    if (!delivery) {
+      return res.status(404).json({ message: "Delivery not found" })
+    }
+    
+    // Check if delivery is already assigned
+    if (delivery.status !== "pending") {
+      return res.status(400).json({ message: `Delivery already in ${delivery.status} status` })
+    }
+    
+    // Assign to this delivery personnel
+    delivery.deliveryPersonnelId = req.user.id
     delivery.status = "assigned"
     delivery.assignedAt = new Date()
     delivery.updatedAt = new Date()
-
     await delivery.save()
-
+    
     // Update delivery personnel status
-    assignedPersonnel.isAvailable = false
-    await assignedPersonnel.save()
+    await DeliveryPersonnel.findOneAndUpdate(
+      { userId: req.user.id }, 
+      { isAvailable: false, updatedAt: new Date() }
+    )
 
-    logger.info(`Delivery ${deliveryId} assigned to personnel ${assignedPersonnel.userId}`)
-
-    // Notify the delivery personnel (in a real app, this would use push notifications or WebSockets)
-    // For now, we'll just log it
-    logger.info(`Notification sent to delivery personnel ${assignedPersonnel.userId} for delivery ${deliveryId}`)
-
-    return delivery
+    res.status(200).json({
+      message: "Delivery assignment accepted successfully",
+      delivery
+    })
   } catch (error) {
-    logger.error(`Find and assign delivery personnel error: ${error.message}`)
-    throw error
+    logger.error(`Accept delivery assignment error: ${error.message}`)
+    res.status(500).json({ message: "Server error", error: error.message })
   }
 }
 

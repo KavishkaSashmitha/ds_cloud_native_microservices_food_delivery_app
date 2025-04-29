@@ -9,12 +9,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrderHistoryCard } from "@/components/order-history-card";
-import { Order } from "@/lib/api";
+import { Order, OrderStatus } from "@/lib/api";
 import { orderApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
+interface OrderStatusGroup {
+  id: string;
+  name: string;
+  statuses?: OrderStatus[];
+}
+
 // Order status groupings
-const orderStatuses = [
+const orderStatuses: OrderStatusGroup[] = [
   { id: "all", name: "All Orders" },
   {
     id: "active",
@@ -32,10 +38,10 @@ const orderStatuses = [
 ];
 
 export default function OrdersPage() {
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -46,13 +52,14 @@ export default function OrdersPage() {
         setLoading(true);
 
         // Get status filter based on active tab
-        const statusFilter = orderStatuses.find(
-          (s) => s.id === activeTab
-        )?.statuses;
+        const activeGroup = orderStatuses.find((s) => s.id === activeTab);
+        const statusFilter = activeGroup?.statuses
+          ? activeGroup.statuses[0]
+          : undefined;
 
         // Make API call to get orders
         const response = await orderApi.getCustomerOrders({
-          status: statusFilter ? (statusFilter[0] as any) : undefined,
+          status: statusFilter,
           page: 1,
           limit: 20,
         });
@@ -92,7 +99,7 @@ export default function OrdersPage() {
   });
 
   // Function to format date
-  const formatDate = (dateString: string | Date | undefined) => {
+  const formatDate = (dateString: string | Date | undefined): string => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleString("en-US", {

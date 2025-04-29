@@ -59,7 +59,11 @@ export default function RestaurantPage() {
 
         // Fetch menu items
         const menuResponse = await restaurantApi.getMenuItems(restaurantId);
-        const menuItemsData = menuResponse.data;
+
+        // Check if the response has the expected structure
+        const menuItemsData = Array.isArray(menuResponse.data)
+          ? menuResponse.data
+          : (menuResponse.data as any)?.menuItems || [];
         setMenuItems(menuItemsData);
 
         // Extract unique categories from menu items
@@ -69,15 +73,29 @@ export default function RestaurantPage() {
         uniqueCategories.add("all");
 
         // Add categories from menu items
-        menuItemsData.forEach((item) => {
-          if (item.category) {
-            uniqueCategories.add(item.category);
-          }
-          // Also mark featured items as "popular"
-          if (item.featured) {
-            uniqueCategories.add("popular");
-          }
-        });
+        if (Array.isArray(menuItemsData)) {
+          menuItemsData.forEach((item) => {
+            if (item.category) {
+              uniqueCategories.add(item.category);
+            }
+            // Also mark featured items as "popular"
+            if (item.featured) {
+              uniqueCategories.add("popular");
+            }
+          });
+        }
+
+        // If API returns categories directly, use those too
+        if (
+          typeof menuResponse.data === "object" &&
+          menuResponse.data !== null &&
+          "categories" in menuResponse.data &&
+          Array.isArray((menuResponse.data as any).categories)
+        ) {
+          (menuResponse.data as any).categories.forEach((category: string) => {
+            uniqueCategories.add(category);
+          });
+        }
 
         // Transform to array of category objects
         const categoryArray = Array.from(uniqueCategories).map((categoryId) => {

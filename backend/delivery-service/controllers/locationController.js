@@ -3,6 +3,7 @@ const DeliveryPersonnel = require("../models/DeliveryPersonnel")
 const LocationHistory = require("../models/LocationHistory")
 const Delivery = require("../models/Delivery")
 const logger = require("../utils/logger")
+const geolib = require("geolib")
 
 // Update delivery personnel location
 exports.updateLocation = async (req, res) => {
@@ -49,6 +50,47 @@ exports.updateLocation = async (req, res) => {
 
     await locationHistory.save()
 
+    // If this is for a specific delivery, broadcast the location update to the customer via WebSockets
+    if (deliveryId) {
+      try {
+        const delivery = await Delivery.findById(deliveryId);
+        if (delivery) {
+          // Emit location update via WebSockets
+          const io = require('../utils/socketHandler').getIO();
+          
+          // Broadcast to the specific room for this delivery
+          io.to(`delivery_${deliveryId}`).emit('location_update', {
+            deliveryId,
+            location: { latitude, longitude },
+            timestamp: new Date(),
+            status: delivery.status,
+            estimatedArrival: calculateEstimatedArrival(delivery, [longitude, latitude])
+          });
+          
+          // Also update the estimated arrival time if needed
+          if (delivery.status === "picked_up" || delivery.status === "in_transit") {
+            const customerLocation = delivery.customerLocation.coordinates;
+            const currentLocation = [longitude, latitude];
+            
+            // Calculate remaining distance and update ETA
+            const remainingDistance = geolib.getDistance(
+              { latitude, longitude },
+              { latitude: customerLocation[1], longitude: customerLocation[0] }
+            ) / 1000; // Convert to km
+            
+            // Update the estimated arrival time based on current location
+            const averageSpeed = 20; // km/h
+            const timeInMinutes = Math.ceil((remainingDistance / averageSpeed) * 60) + 5; // 5 min buffer
+            
+            delivery.currentETA = timeInMinutes;
+            await delivery.save();
+          }
+        }
+      } catch (error) {
+        logger.error(`Failed to broadcast location update: ${error.message}`);
+      }
+    }
+
     res.status(200).json({
       message: "Location updated successfully",
       location: {
@@ -60,6 +102,44 @@ exports.updateLocation = async (req, res) => {
   } catch (error) {
     logger.error(`Update location error: ${error.message}`)
     res.status(500).json({ message: "Server error", error: error.message })
+  }
+}
+
+// Calculate estimated arrival time based on current location
+function calculateEstimatedArrival(delivery, currentCoordinates) {
+  try {
+    // Determine the destination based on delivery status
+    let destinationCoordinates;
+    if (delivery.status === "assigned") {
+      // Driver heading to restaurant
+      destinationCoordinates = delivery.restaurantLocation.coordinates;
+    } else {
+      // Driver heading to customer
+      destinationCoordinates = delivery.customerLocation.coordinates;
+    }
+    
+    // Calculate distance in kilometers
+    const distance = geolib.getDistance(
+      { latitude: currentCoordinates[1], longitude: currentCoordinates[0] },
+      { latitude: destinationCoordinates[1], longitude: destinationCoordinates[0] }
+    ) / 1000;
+    
+    // Estimate time based on average speed (20 km/h)
+    const averageSpeed = 20;
+    const timeInMinutes = Math.ceil((distance / averageSpeed) * 60);
+    
+    // Calculate arrival time
+    const now = new Date();
+    const arrivalTime = new Date(now.getTime() + timeInMinutes * 60000);
+    
+    return {
+      estimatedMinutes: timeInMinutes,
+      estimatedArrivalTime: arrivalTime,
+      remainingDistance: distance.toFixed(1)
+    };
+  } catch (error) {
+    logger.error(`Error calculating estimated arrival: ${error.message}`);
+    return null;
   }
 }
 

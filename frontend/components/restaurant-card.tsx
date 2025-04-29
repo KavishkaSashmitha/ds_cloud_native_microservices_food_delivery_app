@@ -1,24 +1,24 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Clock, Star, Truck } from "lucide-react"
+import Link from "next/link";
+import Image from "next/image";
+import { Clock, Star, Truck } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 
 interface Restaurant {
-  id: string
-  name: string
-  image: string
-  cuisine: string
-  rating: number
-  deliveryTime: string
-  deliveryFee: number
-  minOrder: number
-  distance: string
-  featured?: boolean
+  id: string;
+  name: string;
+  image: string;
+  cuisine: string;
+  rating: number;
+  deliveryTime: string;
+  deliveryFee: number;
+  minOrder: number;
+  distance: string;
+  featured?: boolean;
 }
 
 interface RestaurantCardProps {
-  restaurant: Restaurant
+  restaurant: Restaurant;
 }
 
 export function RestaurantCard({ restaurant }: RestaurantCardProps) {
@@ -33,7 +33,9 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
           {restaurant.featured && (
-            <Badge className="absolute left-2 top-2 bg-orange-500 hover:bg-orange-600">Featured</Badge>
+            <Badge className="absolute left-2 top-2 bg-orange-500 hover:bg-orange-600">
+              Featured
+            </Badge>
           )}
         </div>
         <div className="p-4">
@@ -61,5 +63,5 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
         </div>
       </div>
     </Link>
-  )
+  );
 }
