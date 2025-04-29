@@ -176,3 +176,138 @@
 {"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 23:06:54"}
 {"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-28 23:06:54"}
 {"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23","service":"order-service","timestamp":"2025-04-28 23:07:55"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 13:12:30"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 13:12:31"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-29 13:13:44"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-29 13:14:10"}
+{"level":"info","message":"POST /addresses","service":"order-service","timestamp":"2025-04-29 13:18:23"}
+{"level":"error","message":"Error: Address validation failed: user: Address must belong to a user","service":"order-service","timestamp":"2025-04-29 13:18:23"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-29 13:18:23"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-29 13:27:03"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-29 13:27:40"}
+{"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-29 13:43:44"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 13:44:41"}
+{"level":"error","message":"Create order error: Order validation failed: restaurantId: Cast to ObjectId failed for value \"1\" (type string) at path \"restaurantId\" because of \"BSONError\", items.0.menuItemId: Cast to ObjectId failed for value \"101nameSizevalueRegularnameAddonvalueBacon\" (type string) at path \"menuItemId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 13:44:41"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 15:18:38"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 15:18:40"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 15:33:47"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 15:33:47"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 16:01:11"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 16:01:11"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 16:18:12"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 16:18:13"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:26:29"}
+{"level":"error","message":"Create order error: Order validation failed: restaurantId: Cast to ObjectId failed for value \"1\" (type string) at path \"restaurantId\" because of \"BSONError\", items.0.menuItemId: Cast to ObjectId failed for value \"101nameSizevalueRegularnameAddonvalueBacon\" (type string) at path \"menuItemId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 16:26:29"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:27:05"}
+{"level":"error","message":"Create order error: Order validation failed: items.0.menuItemId: Cast to ObjectId failed for value \"101nameSizevalueRegularnameAddonvalueBacon\" (type string) at path \"menuItemId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 16:27:05"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:28:45"}
+{"level":"error","message":"Create order error: Order validation failed: restaurantId: Cast to ObjectId failed for value \"1\" (type string) at path \"restaurantId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 16:28:45"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:29:40"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:29:41"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:38:25"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:38:25"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 16:40:15"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 16:40:16"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 16:42:30"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 16:42:31"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 16:44:04"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 16:44:05"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:44:08"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:44:08"}
+{"level":"info","message":"POST /api/payments/create-checkout-session","service":"order-service","timestamp":"2025-04-29 16:44:08"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:44:57"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:44:57"}
+{"level":"info","message":"POST /payments/create-checkout-session","service":"order-service","timestamp":"2025-04-29 16:44:57"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 16:45:06"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 16:45:07"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:45:12"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:45:13"}
+{"level":"info","message":"POST /payments/create-checkout-session","service":"order-service","timestamp":"2025-04-29 16:45:13"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:47:00"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:47:00"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:49:33"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:49:33"}
+{"level":"info","message":"POST /payments/create-checkout-session","service":"order-service","timestamp":"2025-04-29 16:49:33"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 16:50:07"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 16:50:08"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:50:16"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:50:17"}
+{"level":"info","message":"POST /payments/create-checkout-session","service":"order-service","timestamp":"2025-04-29 16:50:17"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:51:52"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:51:52"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 16:51:52"}
+{"level":"error","message":"Process payment error: Payment validation failed: method: `stripe` is not a valid enum value for path `method`.","service":"order-service","timestamp":"2025-04-29 16:51:53"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 16:54:22"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 16:54:23"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 16:54:28"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:54:28"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 16:54:28"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 16:56:27"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 16:56:27"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 17:57:26"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 17:57:26"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 19:08:16"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 19:08:17"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 19:08:17"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 19:37:58"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 19:37:58"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 19:37:59"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 19:41:30"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 19:41:30"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 19:52:49"}
+{"level":"info","message":"GET /customer?page=1&limit=20","service":"order-service","timestamp":"2025-04-29 19:52:49"}
+{"level":"info","message":"GET /order123456","service":"order-service","timestamp":"2025-04-29 20:33:20"}
+{"level":"info","message":"GET /order123456","service":"order-service","timestamp":"2025-04-29 20:33:20"}
+{"level":"info","message":"GET /order6810de1208c2f31e1b425ed0","service":"order-service","timestamp":"2025-04-29 20:43:52"}
+{"level":"info","message":"GET /order6810de1208c2f31e1b425ed0","service":"order-service","timestamp":"2025-04-29 20:43:52"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:01:14"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:01:14"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:01:14"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:14:36"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:14:36"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:14:36"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:14:50"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:14:50"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:14:50"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:22:41"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:22:42"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:22:42"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:23:02"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:23:02"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:23:02"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:24:39"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:24:40"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:24:40"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:25:16"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:25:16"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:25:16"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:25:53"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:25:53"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:25:53"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:26:48"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:26:49"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:26:49"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:27:21"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:27:21"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:27:21"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:30:13"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:30:13"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:30:13"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:30:31"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:30:31"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:30:31"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:31:11"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:31:12"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:31:12"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:31:43"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:31:43"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:31:43"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:32:33"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:32:33"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:32:33"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:37:21"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:37:22"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:37:22"}
+{"level":"info","message":"POST /orders","service":"order-service","timestamp":"2025-04-29 21:45:35"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:45:36"}
+{"level":"info","message":"POST /payments/process","service":"order-service","timestamp":"2025-04-29 21:45:36"}

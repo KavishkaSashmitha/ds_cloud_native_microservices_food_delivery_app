@@ -44,3 +44,39 @@
 {"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-28 22:49:04"}
 {"level":"error","message":"Get order error: Cast to ObjectId failed for value \"customer\" (type string) at path \"_id\" for model \"Order\"","service":"order-service","timestamp":"2025-04-28 23:01:12"}
 {"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-28 23:06:54"}
+{"level":"error","message":"Error: Address validation failed: user: Address must belong to a user","service":"order-service","timestamp":"2025-04-29 13:18:23"}
+{"level":"error","message":"Create order error: Order validation failed: restaurantId: Cast to ObjectId failed for value \"1\" (type string) at path \"restaurantId\" because of \"BSONError\", items.0.menuItemId: Cast to ObjectId failed for value \"101nameSizevalueRegularnameAddonvalueBacon\" (type string) at path \"menuItemId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 13:44:41"}
+{"level":"error","message":"Create order error: Order validation failed: restaurantId: Cast to ObjectId failed for value \"1\" (type string) at path \"restaurantId\" because of \"BSONError\", items.0.menuItemId: Cast to ObjectId failed for value \"101nameSizevalueRegularnameAddonvalueBacon\" (type string) at path \"menuItemId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 16:26:29"}
+{"level":"error","message":"Create order error: Order validation failed: items.0.menuItemId: Cast to ObjectId failed for value \"101nameSizevalueRegularnameAddonvalueBacon\" (type string) at path \"menuItemId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 16:27:05"}
+{"level":"error","message":"Create order error: Order validation failed: restaurantId: Cast to ObjectId failed for value \"1\" (type string) at path \"restaurantId\" because of \"BSONError\"","service":"order-service","timestamp":"2025-04-29 16:28:45"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:29:41"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:38:25"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:44:08"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:44:57"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:45:13"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:47:00"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:49:33"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:50:17"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:51:52"}
+{"level":"error","message":"Process payment error: Payment validation failed: method: `stripe` is not a valid enum value for path `method`.","service":"order-service","timestamp":"2025-04-29 16:51:53"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 16:54:28"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 19:08:17"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 19:37:58"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 19:41:30"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:01:14"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:14:36"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:14:50"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:22:42"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:23:02"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:24:40"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:25:16"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:25:53"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:26:49"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:27:21"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:30:13"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:30:31"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:31:12"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:31:43"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:32:33"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:37:22"}
+{"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-29 21:45:36"}

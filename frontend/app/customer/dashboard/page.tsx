@@ -66,7 +66,7 @@ export default function CustomerDashboard() {
             name: restaurant.name,
             image:
               restaurant.images?.cover ||
-              "/placeholder.svg?height=200&width=300",
+              "/pexels-photo-1860208.jpeg",
             cuisine: restaurant.cuisine,
             rating: restaurant.rating?.average || 0,
             deliveryTime: "20-30 min", // Default value as API doesn't provide this
@@ -124,7 +124,7 @@ export default function CustomerDashboard() {
           </div>
           <div className="hidden md:block">
             <Image
-              src="/placeholder.svg?height=150&width=200"
+              src="/burger-isolated-white-background_439318-3537.jpg"
               alt="Food delivery"
               width={200}
               height={150}

@@ -8,15 +8,11 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticateToken);
 
-// Process payment for an order
+// Process payment using Stripe Checkout
 router.post(
   "/process",
   [
     body("orderId").notEmpty().withMessage("Order ID is required"),
-    body("paymentMethod")
-      .isIn(["credit_card", "debit_card", "cash", "wallet"])
-      .withMessage("Valid payment method is required"),
-    body("paymentDetails").optional().isObject().withMessage("Valid payment details are required"),
   ],
   authorizeRoles("customer", "admin"),
   paymentController.processPayment

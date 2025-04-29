@@ -52,7 +52,6 @@ export function MenuItemCard({ item, restaurantId, restaurantName }: MenuItemCar
   const [quantity, setQuantity] = useState(1)
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
   const [selectedAddons, setSelectedAddons] = useState<Record<string, boolean>>({})
-
   const handleAddToCart = () => {
     // If there are options but the dialog hasn't been opened, show the dialog
     if (item.options && item.options.length > 0 && !isDialogOpen) {
@@ -71,7 +70,7 @@ export function MenuItemCard({ item, restaurantId, restaurantName }: MenuItemCar
     // Calculate additional price from options
     let additionalPrice = 0
     const selectedOptionsList: { name: string; value: string }[] = []
-
+console.log('restaurantId', restaurantId)
     if (item.options) {
       item.options.forEach((option) => {
         // Handle radio options (single select)
@@ -96,7 +95,7 @@ export function MenuItemCard({ item, restaurantId, restaurantName }: MenuItemCar
 
     // Add item to cart
     addToCart({
-      id: item.id + JSON.stringify(selectedOptionsList), // Make unique ID based on options
+      id: item.id, // Make unique ID based on options
       restaurantId,
       restaurantName,
       name: item.name,
@@ -128,7 +127,7 @@ export function MenuItemCard({ item, restaurantId, restaurantName }: MenuItemCar
     <>
       <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:border-orange-200 hover:bg-orange-50">
         <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
-          <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+          <Image src={"/pexels-photo-1860208.jpeg"} alt={item.name} fill className="object-cover" />
         </div>
         <div className="flex-1">
           <h3 className="font-medium">{item.name}</h3>

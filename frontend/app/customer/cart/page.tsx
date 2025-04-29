@@ -70,7 +70,8 @@ export default function CartPage() {
                 <div key={item.id} className="flex items-center gap-4">
                   <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md">
                     <Image
-                      src={item.image || "/placeholder.svg?height=64&width=64"}
+                    src={"/pexels-photo-1860208.jpeg"}
+                      // src={item.image || "/placeholder.svg?height=64&width=64"}
                       alt={item.name}
                       fill
                       className="object-cover"

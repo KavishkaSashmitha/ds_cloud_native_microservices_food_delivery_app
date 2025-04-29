@@ -28,22 +28,28 @@ mongoose
   });
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`);
-  
+
   // Extract user information from headers (set by API gateway)
   const userId = req.headers["x-user-id"];
   const userRole = req.headers["x-user-role"];
-  
+
   if (userId && userRole) {
     req.user = { id: userId, role: userRole };
   }
-  
+
   next();
 });
 
@@ -53,7 +59,7 @@ app.get("/health", (req, res) => {
 });
 
 // Routes
-app.use("/orders", orderRoutes);          // Order routes
+app.use("/orders", orderRoutes); // Order routes
 app.use("/payments", paymentRoutes); // Payment routes
 app.use("/addresses", addressRoutes); // Address routes
 

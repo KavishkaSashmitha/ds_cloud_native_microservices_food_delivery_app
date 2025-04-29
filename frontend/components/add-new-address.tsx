@@ -54,31 +54,22 @@ export default function AddAddressModal({ onClose, onAddressAdded }: AddAddressM
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    try {
-        const token = localStorage.getItem('token');
-
-        const payload = {
-          ...formData,
-          coordinates: [parseFloat(formData.longitude), parseFloat(formData.latitude)],
-        }
-    
-        const response = await axios.post('http://localhost:3003/addresses', payload,
-            {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-        ) // <-- adjust API URL if needed
-    
-        console.log("Address saved:", response.data)
-    
-        // Optionally pass saved address to parent
-        onAddressAdded(response.data.data.address)
-
-    onClose() // close the modal
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    // You can still prepare or validate the payload here if needed
+    const payload = {
+      ...formData,
+      coordinates: [parseFloat(formData.longitude), parseFloat(formData.latitude)],
+    };
+  
+    console.log("Prepared address data (not submitted):", payload);
+  
+    // Optionally pass dummy/simulated address to parent if needed
+    onAddressAdded(payload);
+  
+    onClose(); // close the modal
+  
     setFormData({
       name: "",
       street: "",
@@ -88,14 +79,8 @@ export default function AddAddressModal({ onClose, onAddressAdded }: AddAddressM
       latitude: "",
       longitude: "",
       deliveryInstructions: "",
-    })
-  } catch (error: any) {
-    console.error("Failed to save address:", error.response?.data || error.message)
-    // Optional: show an error toast here
-  }
-}
-
-
+    });
+  };
 
   return (
     <Dialog open onOpenChange={onClose}>

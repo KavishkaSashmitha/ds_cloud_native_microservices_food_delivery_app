@@ -71,14 +71,14 @@ export interface CancelOrderRequest {
 export const orderRoutes = {
   // Create a new order
   createOrder: (orderData: CreateOrderRequest) => 
-    api.post<OrderDetailResponse>('/orders', orderData),
+    api.post<OrderDetailResponse>('http://localhost:3003/orders', orderData),
   
   // Get all customer orders with optional filters
   getCustomerOrders: (params?: { 
     status?: OrderStatus;
     page?: number;
     limit?: number;
-  }) => api.get<OrdersResponse>('/orders/customer', { params }),
+  }) => api.get<OrdersResponse>('/customer/orders', { params }),
   
   // Get all restaurant orders with optional filters
   getRestaurantOrders: (restaurantId: string, params?: {

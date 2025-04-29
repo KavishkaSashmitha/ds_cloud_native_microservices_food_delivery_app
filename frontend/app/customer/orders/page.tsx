@@ -53,18 +53,94 @@ export default function OrdersPage() {
 
         // Get status filter based on active tab
         const activeGroup = orderStatuses.find((s) => s.id === activeTab);
-        const statusFilter = activeGroup?.statuses
-          ? activeGroup.statuses[0]
-          : undefined;
+        const statusFilter = activeGroup?.statuses;
+          // ? activeGroup.statuses[0]
+          // : undefined;
+
+          const mockOrders: Order[] = [
+            {
+              _id: "order6810de1208c2f31e1b425ed0",
+              restaurantId: "680e01d2f4fd197e548bff1d",
+              customerId: "680ddebffe6473fffe5de8cc",
+              status: "pending",
+              items: [
+                { name: "Chicken Kottu", quantity: 1, menuItemId: "", price: 15.99 },
+                { name: "Traditional Rice and Curry", quantity: 1, menuItemId: "", price: 20.99 },
+              ],
+              subtotal: 36.98,
+              tax: 2.96,
+              deliveryFee: 3.99,
+              tip: 0,
+              total: 43.93,
+              // paymentMethod: "card",
+              // paymentStatus: "paid",
+              deliveryAddress: {
+                street: "18, Temple Rd",
+                city: "Weligama",
+                state: "Southern",
+                zipCode: "81700",
+                country: "",
+                location: {
+                  type: "Point",
+                  coordinates: [80.4278, 5.9779]
+                }
+              },
+              deliveryInstructions: "Ring the bell",
+              createdAt: new Date(),
+              paymentMethod: "credit_card",
+              paymentStatus: "completed"
+            },
+            {
+              _id: "order6810de1208c2f31e1b425ed0",
+              restaurantId: "680e01d2f4fd197e548bff1d",
+              customerId: "680ddebffe6473fffe5de8cc",
+              status: "delivered",
+              items: [
+                { name: "Chicken Burger", quantity: 2, menuItemId: "", price: 13.99 },
+                { name: "Chips and Fries", quantity: 1, menuItemId: "", price: 8.50 },
+              ],
+              subtotal: 22.49,
+              tax: 1.00,
+              deliveryFee: 3.99,
+              tip: 0,
+              total: 26.48,
+              // paymentMethod: "card",
+              // paymentStatus: "paid",
+              deliveryAddress: {
+                street: "123 Main Street, Apt 4B",
+                city: "New York",
+                state: "NY",
+                zipCode: "10001",
+                country: "",
+                location: {
+                  type: "Point",
+                  coordinates: [80.4278, 5.9779]
+                }
+              },
+              estimatedDeliveryTime: new Date(),
+              createdAt: new Date(),
+              paymentMethod: "credit_card",
+              paymentStatus: "pending"
+            },
+          ];
+          
+          // Apply filtering if needed
+    const filtered =
+    statusFilter && statusFilter.length > 0
+      ? mockOrders.filter((order) => statusFilter.includes(order.status))
+      : mockOrders;
+
+  setOrders(filtered);
+
 
         // Make API call to get orders
-        const response = await orderApi.getCustomerOrders({
-          status: statusFilter,
-          page: 1,
-          limit: 20,
-        });
+        // const response = await orderApi.getCustomerOrders({
+        //   status: statusFilter,
+        //   page: 1,
+        //   limit: 20,
+        // });
 
-        setOrders(response.data.orders);
+        // setOrders(response.data.orders);
         setError(null);
       } catch (err: any) {
         console.error("Failed to fetch orders:", err);
@@ -252,9 +328,9 @@ export default function OrdersPage() {
                           <span className="font-medium">
                             ${order.total.toFixed(2)}
                           </span>
-                          <Button variant="outline" size="sm" className="h-8">
+                          {/* <Button variant="outline" size="sm" className="h-8">
                             View Details
-                          </Button>
+                          </Button> */}
                         </div>
                       </div>
                     </CardContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import axios from "axios";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { orderApi, paymentApi } from "@/lib/api";
 import  AddAddressModal  from "@/components/add-new-address"
+import { loadStripe } from "@stripe/stripe-js"
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 
 
@@ -106,6 +109,8 @@ const [savedAddresses, setSavedAddresses] = useState([
       }
 
       // Format items for the API
+      console.log(cartItems);
+
       const orderItems = cartItems.map((item) => ({
         menuItemId: item.id,
         name: item.name,
@@ -144,23 +149,47 @@ const [savedAddresses, setSavedAddresses] = useState([
       };
 
       // Create order
+      const delay = (ms: number | undefined) => new Promise(resolve => setTimeout(resolve, ms));
+
+await delay(4000);
       const orderResponse = await orderApi.createOrder(orderData);
+      const orderId = orderResponse.data.order._id;
+      // const orderResponse = await axios.post("http://localhost:3003/orders", orderData, {
+      //   headers: {
+      //     Authorization: `Bearer ${localStorage.getItem("token")}`, // optional if auth is required
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      const stripe = await stripePromise;     
 
-      // Process payment if not cash on delivery
-      if (paymentMethod !== "cash") {
-        // Extract card details
-        const paymentDetails = {
-          cardLast4: cardDetails.cardNumber.slice(-4),
-          cardBrand: getCardBrand(cardDetails.cardNumber),
-        };
+      // 2. If not cash, process Stripe Checkout
+if (paymentMethod !== "cash") {
+  const sessionResponse = await axios.post(
+    "http://localhost:3003/payments/process",
+    { orderId },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
-        // Process payment
-        await paymentApi.processPayment({
-          orderId: orderResponse.data.order._id!,
-          paymentMethod: paymentMethod as any,
-          paymentDetails,
-        });
-      }
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+  if (!stripe) {
+    throw new Error("Stripe failed to initialize");
+  }
+
+  const result = await stripe.redirectToCheckout({
+    sessionId: sessionResponse.data.sessionId, // Make sure your backend returns this
+  });
+
+  if (result.error) {
+    window.location.href = "/customer/payment-cancelled";
+  }
+
+  return; // Stripe will redirect, no need to continue
+}
 
       // Clear cart
       clearCart();
@@ -463,13 +492,21 @@ const [savedAddresses, setSavedAddresses] = useState([
                 </div>
               </CardContent>
               <CardFooter>
-                <Button
+                {/* <Button
                   type="submit"
                   className="w-full bg-orange-500 hover:bg-orange-600"
                   disabled={isProcessing}
                 >
                   {isProcessing ? "Processing..." : "Place Order"}
-                </Button>
+                </Button> */}
+                <Button
+  type="submit"
+  className="w-full bg-orange-500 hover:bg-orange-500"
+  // disabled={isProcessing}
+>
+  Place Order
+</Button>
+
               </CardFooter>
             </Card>
           </div>
