@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context";
-import { DeliveryOrder, useDelivery } from "@/contexts/delivery-context";
+import { useDelivery } from "@/contexts/delivery-context";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DeliveryOrderCard } from "@/components/delivery-order-card";
+import { Order } from "@/lib/api";
 
 // Dynamically import the map component to avoid SSR issues
 const DeliveryMap = dynamic(() => import("@/components/delivery-map"), {
@@ -32,13 +33,9 @@ const DeliveryMap = dynamic(() => import("@/components/delivery-map"), {
   ),
 });
 
-interface DeliveryOrderCardProps {
-  order: DeliveryOrder;
-  showActions?: boolean;
-  onSelect?: () => void;
-}
+// Remove this interface as it's likely defined in the DeliveryOrderCard component file
 
-export default function DeliveryDashboard() {
+export default function DeliveryDashboard(): React.ReactElement {
   const { user } = useAuth();
   const {
     status,
@@ -157,7 +154,7 @@ export default function DeliveryDashboard() {
             <div className="flex items-center">
               <DollarSign className="mr-2 h-4 w-4 text-green-500" />
               <span className="text-2xl font-bold">
-                Rs.{earnings.week.toFixed(0)}
+                Rs.{earnings.thisWeek.toFixed(0)}
               </span>
             </div>
           </CardContent>
@@ -331,9 +328,7 @@ export default function DeliveryDashboard() {
                   <DeliveryOrderCard order={currentOrder} showActions={false} />
                   <div className="flex justify-center">
                     <Link href={`/delivery/orders/${currentOrder.id}`}>
-                      <Button className="bg-orange-500 hover:bg-orange-600">
-                        View Order Details
-                      </Button>
+                      <Button>View Order Details</Button>
                     </Link>
                   </div>
                 </div>

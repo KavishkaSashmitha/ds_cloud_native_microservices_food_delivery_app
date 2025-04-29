@@ -71,7 +71,7 @@ export default function OrderDetailPage() {
       // In a real app, this would use the Google Maps Distance Matrix API
       // Here we're just simulating an ETA calculation
       const destination =
-        currentOrder.status === "ready_for_pickup"
+        (currentOrder.status as string) === "ready_for_pickup"
           ? currentOrder.restaurantLocation
           : currentOrder.customerLocation;
 
@@ -120,12 +120,13 @@ export default function OrderDetailPage() {
 
   // Get current step based on order status
   const getCurrentStep = () => {
-    switch (currentOrder?.status) {
+    const status = currentOrder?.status as OrderStatus;
+    switch (status as string) {
       case "ready_for_pickup":
         return 0;
       case "picked_up":
         return 1;
-      case "on_the_way":
+      case "in_transit":
         return 2;
       case "delivered":
         return 3;
@@ -138,13 +139,13 @@ export default function OrderDetailPage() {
   const getNextStatus = (): OrderStatus | null => {
     if (!currentOrder) return null;
 
-    switch (currentOrder.status) {
+    switch (currentOrder.status as string) {
       case "ready_for_pickup":
-        return "picked_up";
+        return "picked_up" as OrderStatus;
       case "picked_up":
-        return "on_the_way";
-      case "on_the_way":
-        return "delivered";
+        return "in_transit" as OrderStatus;
+      case "in_transit":
+        return "delivered" as OrderStatus;
       default:
         return null;
     }
@@ -174,7 +175,7 @@ export default function OrderDetailPage() {
     if (!currentOrder || !currentLocation) return;
 
     const destination =
-      currentOrder.status === "ready_for_pickup"
+      (currentOrder.status as string) === "ready_for_pickup"
         ? `${currentOrder.restaurantLocation.lat},${currentOrder.restaurantLocation.lng}`
         : `${currentOrder.customerLocation.lat},${currentOrder.customerLocation.lng}`;
 
@@ -203,12 +204,12 @@ export default function OrderDetailPage() {
   const getButtonText = () => {
     if (!currentOrder) return "Update Status";
 
-    switch (currentOrder.status) {
+    switch (currentOrder.status as string) {
       case "ready_for_pickup":
         return "Confirm Pickup";
       case "picked_up":
         return "Start Delivery";
-      case "on_the_way":
+      case "in_transit":
         return "Complete Delivery";
       default:
         return "Update Status";
@@ -219,7 +220,7 @@ export default function OrderDetailPage() {
   const getDestinationLabel = () => {
     if (!currentOrder) return "";
 
-    return currentOrder.status === "ready_for_pickup"
+    return (currentOrder.status as string) === "ready_for_pickup"
       ? "Restaurant"
       : "Customer";
   };
@@ -243,9 +244,9 @@ export default function OrderDetailPage() {
           <Badge
             variant="outline"
             className={`px-3 py-1 ${
-              currentOrder.status === "delivered"
+              (currentOrder.status as string) === "delivered"
                 ? "bg-green-100 text-green-800 border-green-200"
-                : currentOrder.status === "cancelled"
+                : (currentOrder.status as string) === "cancelled"
                 ? "bg-red-100 text-red-800 border-red-200"
                 : "bg-orange-100 text-orange-600 border-orange-200"
             }`}
@@ -296,7 +297,7 @@ export default function OrderDetailPage() {
                   className="flex items-center gap-2"
                   onClick={() =>
                     makePhoneCall(
-                      currentOrder.status === "ready_for_pickup"
+                      (currentOrder.status as string) === "ready_for_pickup"
                         ? "0123456789" // Restaurant phone (would come from API)
                         : currentOrder.customerPhone
                     )
@@ -315,25 +316,25 @@ export default function OrderDetailPage() {
               <CardTitle>Order Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <Steps 
+              <Steps
                 currentStep={getCurrentStep()}
                 steps={[
                   {
                     title: "Ready for Pickup",
-                    description: "Pickup order from restaurant"
+                    description: "Pickup order from restaurant",
                   },
                   {
                     title: "Picked Up",
-                    description: "Order collected from restaurant"
+                    description: "Order collected from restaurant",
                   },
                   {
-                    title: "On the Way", 
-                    description: "Delivering to customer" 
+                    title: "In Transit",
+                    description: "Delivering to customer",
                   },
                   {
-                    title: "Delivered", 
-                    description: "Order completed" 
-                  }
+                    title: "Delivered",
+                    description: "Order completed",
+                  },
                 ]}
               />
 
@@ -455,7 +456,7 @@ export default function OrderDetailPage() {
 
               <div className="flex justify-between font-medium">
                 <span>Total</span>
-                <span>Rs.{currentOrder.total.toFixed(2)}</span>
+                <span>Rs.{(currentOrder.total ?? 0).toFixed(2)}</span>
               </div>
 
               <div className="rounded-lg bg-green-50 p-3 text-sm">
@@ -473,7 +474,7 @@ export default function OrderDetailPage() {
                 >
                   {getButtonText()}
                 </Button>
-                {currentOrder.status !== "delivered" && (
+                {(currentOrder.status as string) !== "delivered" && (
                   <Button
                     variant="outline"
                     className="w-full text-red-500 hover:bg-red-50 hover:text-red-600"

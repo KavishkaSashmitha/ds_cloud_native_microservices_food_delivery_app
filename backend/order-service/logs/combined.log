@@ -176,3 +176,11 @@
 {"level":"info","message":"POST /","service":"order-service","timestamp":"2025-04-28 23:06:54"}
 {"level":"error","message":"Failed to notify restaurant service: Invalid URL","service":"order-service","timestamp":"2025-04-28 23:06:54"}
 {"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23","service":"order-service","timestamp":"2025-04-28 23:07:55"}
+{"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23","service":"order-service","timestamp":"2025-04-28 23:43:16"}
+{"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23?status=pending","service":"order-service","timestamp":"2025-04-28 23:43:22"}
+{"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23?status=confirmed","service":"order-service","timestamp":"2025-04-28 23:43:23"}
+{"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23","service":"order-service","timestamp":"2025-04-28 23:43:33"}
+{"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23","service":"order-service","timestamp":"2025-04-28 23:50:54"}
+{"level":"info","message":"GET /restaurant/680e650a77c2d666fa801b23","service":"order-service","timestamp":"2025-04-28 23:50:57"}
+{"level":"info","message":"Order service running on port 3003","service":"order-service","timestamp":"2025-04-29 06:22:51"}
+{"level":"info","message":"Connected to MongoDB","service":"order-service","timestamp":"2025-04-29 06:22:52"}

@@ -33,6 +33,19 @@ interface DeliveryTrackingProps {
   deliveryId: string;
   orderId: string;
   initialStatus?: string;
+  driverLocation?: { lat: number; lng: number } | null;
+  driver?: {
+    id: string;
+    name: string;
+    phone: string;
+    vehicleType: string;
+    rating: number;
+    location?: {
+      lat: number;
+      lng: number;
+    };
+  };
+  estimatedDeliveryTime?: Date;
 }
 
 interface DeliveryInfo {
@@ -68,22 +81,42 @@ export default function DeliveryTracking({
   deliveryId,
   orderId,
   initialStatus = "pending",
+  driverLocation,
+  driver,
+  estimatedDeliveryTime,
 }: DeliveryTrackingProps) {
   const { toast } = useToast();
   const [delivery, setDelivery] = useState<DeliveryInfo | null>(null);
-  const [driverLocation, setDriverLocation] = useState<{
+  const [currentDriverLocation, setCurrentDriverLocation] = useState<{
     lat: number;
     lng: number;
-  } | null>(null);
-  const [estimatedArrival, setEstimatedArrival] = useState<string | null>(null);
+  } | null>(driverLocation || null);
+  const [estimatedArrival, setEstimatedArrival] = useState<string | null>(
+    estimatedDeliveryTime
+      ? new Date(estimatedDeliveryTime).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null
+  );
   const [status, setStatus] = useState<string>(initialStatus);
   const [loading, setLoading] = useState<boolean>(true);
   const socketRef = useRef<Socket | null>(null);
 
-  // Fetch delivery information
+  useEffect(() => {
+    if (driverLocation) {
+      setCurrentDriverLocation(driverLocation);
+    }
+  }, [driverLocation]);
+
   useEffect(() => {
     const fetchDeliveryInfo = async () => {
       try {
+        if (driver && driverLocation) {
+          setLoading(false);
+          return;
+        }
+
         const res = await fetch(`/api/deliveries/${deliveryId}`);
 
         if (!res.ok) {
@@ -94,8 +127,7 @@ export default function DeliveryTracking({
         setDelivery(data.delivery);
         setStatus(data.delivery.status);
 
-        // If we have a delivery person ID, fetch their current location
-        if (data.delivery.deliveryPersonnelId) {
+        if (data.delivery.deliveryPersonnelId && !driverLocation) {
           fetchDriverLocation(data.delivery.deliveryPersonnelId);
         }
       } catch (error) {
@@ -111,9 +143,8 @@ export default function DeliveryTracking({
     };
 
     fetchDeliveryInfo();
-  }, [deliveryId, toast]);
+  }, [deliveryId, toast, driver, driverLocation]);
 
-  // Fetch driver's location
   const fetchDriverLocation = async (driverId: string) => {
     try {
       const res = await fetch(`/api/location/personnel/${driverId}`);
@@ -122,31 +153,29 @@ export default function DeliveryTracking({
 
       const data = await res.json();
       if (data.location) {
-        setDriverLocation({
+        setCurrentDriverLocation({
           lat: data.location.latitude,
           lng: data.location.longitude,
         });
 
-        // Calculate ETA based on location
-        calculateETA(data.location.latitude, data.location.longitude);
+        if (!estimatedDeliveryTime) {
+          calculateETA(data.location.latitude, data.location.longitude);
+        }
       }
     } catch (error) {
       console.error("Error fetching driver location:", error);
     }
   };
 
-  // Calculate estimated time of arrival
   const calculateETA = (driverLat: number, driverLng: number) => {
     if (!delivery) return;
 
-    // Determine destination based on status
     const destCoords =
       status === "picked_up" || status === "in_transit"
         ? delivery.customerLocation.coordinates
         : delivery.restaurantLocation.coordinates;
 
-    // Calculate distance using Haversine formula
-    const R = 6371; // Earth radius in km
+    const R = 6371;
     const dLat = ((destCoords[1] - driverLat) * Math.PI) / 180;
     const dLng = ((destCoords[0] - driverLng) * Math.PI) / 180;
     const a =
@@ -156,16 +185,13 @@ export default function DeliveryTracking({
         Math.sin(dLng / 2) *
         Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
+    const distance = R * c;
 
-    // Assume average speed of 20 km/h in city traffic
-    const timeInMinutes = Math.ceil(distance * 3); // Multiply by 3 for minutes (20 km/h = 1/3 km per minute)
+    const timeInMinutes = Math.ceil(distance * 3);
 
-    // Calculate estimated arrival time
     const arrivalTime = new Date();
     arrivalTime.setMinutes(arrivalTime.getMinutes() + timeInMinutes);
 
-    // Format arrival time
     const formattedTime = arrivalTime.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -174,33 +200,30 @@ export default function DeliveryTracking({
     setEstimatedArrival(formattedTime);
   };
 
-  // Setup real-time updates with Socket.IO
   useEffect(() => {
-    if (!delivery) return;
+    if (driverLocation !== undefined) {
+      return;
+    }
 
-    // Connect to WebSocket server with token-based authentication
     const socketUrl =
       process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
     console.log("Connecting to socket server at:", socketUrl);
 
     const socket = io(socketUrl, {
-      transports: ["websocket"], // Use websocket transport for better performance
-      reconnectionAttempts: 5, // Try to reconnect 5 times
-      reconnectionDelay: 1000, // Start with 1s delay between retries
+      transports: ["websocket"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     socketRef.current = socket;
 
-    // Handle connection events
     socket.on("connect", () => {
       console.log("Socket.IO connected successfully");
 
-      // Join tracking room for this delivery
       socket.emit("track_delivery", deliveryId);
       console.log(`Tracking delivery: ${deliveryId}`);
     });
 
-    // Listen for delivery status updates
     socket.on("delivery_status_update", (data) => {
       console.log("Received delivery status update:", data);
       if (data.deliveryId === deliveryId || data.orderId === orderId) {
@@ -215,16 +238,14 @@ export default function DeliveryTracking({
       }
     });
 
-    // Listen for location updates from the delivery personnel
     socket.on("location_update", (data) => {
       console.log("Received location update:", data);
       if (data.deliveryId === deliveryId) {
-        setDriverLocation({
+        setCurrentDriverLocation({
           lat: data.location.latitude,
           lng: data.location.longitude,
         });
 
-        // Update estimated arrival if provided by the server
         if (data.estimatedArrival) {
           const arrivalTime = new Date(
             data.estimatedArrival.estimatedArrivalTime
@@ -236,31 +257,25 @@ export default function DeliveryTracking({
             })
           );
         } else {
-          // Otherwise calculate locally
           calculateETA(data.location.latitude, data.location.longitude);
         }
       }
     });
 
-    // Listen for tracking updates - this is an alternative event some backends might emit
     socket.on("delivery_tracking_update", (data) => {
       console.log("Received delivery tracking update:", data);
       if (data.deliveryId === deliveryId || data.orderId === orderId) {
-        setDriverLocation({
+        setCurrentDriverLocation({
           lat: data.location.latitude,
           lng: data.location.longitude,
         });
 
-        // Update status if provided
         if (data.status) {
           setStatus(data.status);
         }
 
-        // Update estimated arrival if provided
         if (data.estimatedArrival) {
-          const arrivalTime = new Date(
-            data.estimatedArrival.estimatedArrivalTime
-          );
+          const arrivalTime = new Date(data.estimatedArrival);
           setEstimatedArrival(
             arrivalTime.toLocaleTimeString([], {
               hour: "2-digit",
@@ -271,253 +286,170 @@ export default function DeliveryTracking({
       }
     });
 
-    // Handle connection errors
+    socket.on("disconnect", () => {
+      console.log("Socket.IO disconnected");
+    });
+
     socket.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
-      toast({
-        title: "Connection Error",
-        description: "Having trouble connecting to live tracking service",
-        variant: "destructive",
-      });
     });
 
-    // Handle socket errors
-    socket.on("error", (error) => {
-      console.error("Socket error:", error);
-    });
-
-    // Clean up when component unmounts
     return () => {
-      if (socket.connected) {
-        console.log("Stopping delivery tracking");
-        socket.emit("stop_tracking", deliveryId);
-        socket.disconnect();
-        console.log("Socket disconnected");
+      console.log("Cleaning up socket connection");
+      if (socketRef.current) {
+        socketRef.current.emit("stop_tracking", deliveryId);
+        socketRef.current.disconnect();
       }
     };
-  }, [delivery, deliveryId, orderId, toast]);
+  }, [deliveryId, orderId, toast, driverLocation]);
 
-  // Create a timer to refresh driver location every 30 seconds as a fallback
-  useEffect(() => {
-    if (
-      !delivery?.deliveryPersonnelId ||
-      status === "delivered" ||
-      status === "cancelled"
-    )
-      return;
+  const formatPhone = (phone: string) => {
+    if (/^\d{10}$/.test(phone)) {
+      return `(${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
+    }
+    return phone;
+  };
 
-    const intervalId = setInterval(() => {
-      fetchDriverLocation(delivery.deliveryPersonnelId);
-    }, 30000);
+  const renderDriverInfo = () => {
+    const driverInfo = driver || delivery?.deliveryPersonnel;
 
-    return () => clearInterval(intervalId);
-  }, [delivery, status]);
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6 flex justify-center items-center min-h-[400px]">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!delivery) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <h2 className="text-xl font-semibold mb-4">Delivery Not Found</h2>
-          <p className="text-gray-600">
-            Unable to find tracking information for this delivery.
+    if (!driverInfo) {
+      return (
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <p className="text-center text-gray-600">
+            Driver information will appear here once assigned.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-800">
+            {driverInfo.name.charAt(0)}
+          </div>
+          <div className="flex-1">
+            <h3 className="font-medium">{driverInfo.name}</h3>
+            <div className="text-sm text-gray-600">
+              {driverInfo.vehicleType.charAt(0).toUpperCase() +
+                driverInfo.vehicleType.slice(1)}
+            </div>
+            <div className="flex items-center text-sm">
+              <span className="text-yellow-500">★</span>
+              <span>{driverInfo.rating.toFixed(1)}</span>
+            </div>
+          </div>
+          <a
+            href={`tel:${driverInfo.phone}`}
+            className="p-2 bg-green-100 rounded-full text-green-600 hover:bg-green-200"
+          >
+            <Phone className="h-5 w-5" />
+          </a>
+        </div>
+      </div>
     );
-  }
-
-  // Get destination based on status
-  const destination =
-    status === "pending" || status === "assigned"
-      ? {
-          lat: delivery.restaurantLocation.coordinates[1],
-          lng: delivery.restaurantLocation.coordinates[0],
-        }
-      : {
-          lat: delivery.customerLocation.coordinates[1],
-          lng: delivery.customerLocation.coordinates[0],
-        };
-
-  // Get driver information
-  const driverInfo = delivery.deliveryPersonnel;
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-xl">Track Your Delivery</CardTitle>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Live Delivery Tracking</CardTitle>
             <Badge
-              className={
+              className={`${
                 statusColors[status as keyof typeof statusColors] ||
                 "bg-gray-500"
-              }
+              } text-white`}
             >
-              {statusLabels[status as keyof typeof statusLabels] || "Unknown"}
+              {statusLabels[status as keyof typeof statusLabels] || status}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 mb-1">
-            <MapPin className="h-4 w-4 text-gray-500" />
-            <p className="text-sm">
-              {status === "pending" || status === "assigned"
-                ? "Restaurant: " + delivery.restaurantName
-                : "Delivering to: " + delivery.customerAddress}
-            </p>
+        <CardContent className="space-y-6">
+          <div className="h-[300px] lg:h-[400px] w-full overflow-hidden rounded-lg border shadow-sm">
+            <DeliveryMap
+                          driver={currentDriverLocation}
+                          restaurant={
+                            delivery?.restaurantLocation?.coordinates
+                              ? {
+                                  lat: delivery.restaurantLocation.coordinates[1],
+                                  lng: delivery.restaurantLocation.coordinates[0],
+                                }
+                              : undefined
+                          }
+                          customer={
+                            delivery?.customerLocation?.coordinates
+                              ? {
+                                  lat: delivery.customerLocation.coordinates[1],
+                                  lng: delivery.customerLocation.coordinates[0],
+                                }
+                              : undefined
+                          }
+                          status={status}
+                        />
           </div>
 
-          {estimatedArrival &&
-            ["assigned", "picked_up", "in_transit"].includes(status) && (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <p className="text-sm">Estimated arrival: {estimatedArrival}</p>
+          {renderDriverInfo()}
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex items-center space-x-2">
+              <Clock className="text-orange-500 h-5 w-5" />
+              <div>
+                <p className="text-sm font-medium">Estimated Arrival</p>
+                <p className="text-xl font-bold">
+                  {estimatedArrival || "Calculating..."}
+                </p>
               </div>
-            )}
-        </CardContent>
-      </Card>
+            </div>
 
-      {/* Map */}
-      <Card>
-        <CardContent className="p-0 overflow-hidden rounded-lg">
-          <DeliveryMap
-            currentLocation={driverLocation}
-            orders={[]}
-            currentOrder={{
-              id: orderId,
-              restaurantId: delivery.restaurantName,
-              restaurantName: delivery.restaurantName,
-              restaurantAddress: delivery.restaurantAddress,
-              restaurantLocation: {
-                lat: delivery.restaurantLocation.coordinates[1],
-                lng: delivery.restaurantLocation.coordinates[0],
-              },
-              customerName: "Customer",
-              customerAddress: delivery.customerAddress,
-              customerLocation: {
-                lat: delivery.customerLocation.coordinates[1],
-                lng: delivery.customerLocation.coordinates[0],
-              },
-              customerPhone: "",
-              items: [],
-              total: 0,
-              status: status as any,
-              distance: 0,
-              estimatedTime: "",
-              earnings: 0,
-              createdAt: "",
-            }}
-            height={300}
-            showDirections={true}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Driver Info (only show when assigned) */}
-      {driverInfo &&
-        ["assigned", "picked_up", "in_transit"].includes(status) && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Your Delivery Partner</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{driverInfo.name}</p>
-                  <p className="text-sm text-gray-500 capitalize">
-                    {driverInfo.vehicleType} • {driverInfo.rating.toFixed(1)}★
-                  </p>
-                </div>
-                <Button className="bg-green-500 hover:bg-green-600" size="sm">
-                  <Phone className="h-4 w-4 mr-2" />
-                  <a href={`tel:${driverInfo.phone}`}>Call Driver</a>
-                </Button>
+            <div className="flex items-center space-x-2">
+              <MapPin className="text-orange-500 h-5 w-5" />
+              <div>
+                <p className="text-sm font-medium">Pickup</p>
+                <p className="text-sm line-clamp-1">
+                  {delivery?.restaurantName || "Restaurant"}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
 
-      {/* Delivery Timeline */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Delivery Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[
-              "pending",
-              "assigned",
-              "picked_up",
-              "in_transit",
-              "delivered",
-            ].map((step, idx) => {
-              const isActive =
-                ["assigned", "picked_up", "in_transit", "delivered"].indexOf(
-                  status
-                ) >=
-                ["assigned", "picked_up", "in_transit", "delivered"].indexOf(
-                  step
-                );
-              const isCurrent = status === step;
+            <div className="flex items-center space-x-2">
+              <Navigation className="text-orange-500 h-5 w-5" />
+              <div>
+                <p className="text-sm font-medium">Delivery</p>
+                <p className="text-sm line-clamp-1">
+                  {delivery?.customerAddress || "Your address"}
+                </p>
+              </div>
+            </div>
+          </div>
 
-              return (
-                <div
-                  key={step}
-                  className={`flex gap-3 ${
-                    idx !== 4
-                      ? "pb-4 border-l-2 border-l-gray-200 pl-4 ml-[7px]"
-                      : ""
-                  }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full mt-1 -ml-[17px] ${
-                      isActive ? "bg-orange-500" : "bg-gray-300"
-                    }`}
-                  ></div>
-                  <div className="flex-1">
-                    <p
-                      className={`font-medium ${
-                        isCurrent ? "text-orange-500" : ""
-                      }`}
-                    >
-                      {statusLabels[step as keyof typeof statusLabels]}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {step === "pending" && "We've received your order"}
-                      {step === "assigned" &&
-                        "A driver has been assigned to your order"}
-                      {step === "picked_up" &&
-                        "Your order has been picked up from the restaurant"}
-                      {step === "in_transit" &&
-                        "Your order is on the way to your location"}
-                      {step === "delivered" &&
-                        "Your order has been delivered successfully"}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg flex items-start space-x-3">
+            <Info className="text-blue-500 h-5 w-5 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="font-medium text-blue-800">Tracking Updates</h4>
+              <p className="text-blue-600 text-sm">
+                Real-time location updates may be delayed by 15-30 seconds based
+                on GPS accuracy.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => window.history.back()}>
+              Back to Order
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="ml-auto"
+            >
+              Refresh Tracking
+            </Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Help Button */}
-      <div className="flex justify-center">
-        <Button variant="outline" className="flex gap-2">
-          <Info className="h-4 w-4" />I need help with this order
-        </Button>
-      </div>
     </div>
   );
 }

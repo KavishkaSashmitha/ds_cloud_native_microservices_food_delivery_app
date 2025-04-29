@@ -9,6 +9,7 @@ import { ArrowLeft, CreditCard, MapPin } from "lucide-react";
 
 import { useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
+import { useCustomer } from "@/contexts/customer-context";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,7 +24,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { orderApi, paymentApi } from "@/lib/api";
 
 // Mock saved addresses
 const savedAddresses = [
@@ -35,7 +35,7 @@ const savedAddresses = [
     state: "NY",
     zipCode: "10001",
     isDefault: true,
-    coordinates: [-74.005941, 40.712784] as [number, number], // [longitude, latitude]
+    coordinates: [79.8612, 6.9271] as [number, number], // [longitude, latitude]
   },
   {
     id: "2",
@@ -45,7 +45,7 @@ const savedAddresses = [
     state: "NY",
     zipCode: "10002",
     isDefault: false,
-    coordinates: [-73.987465, 40.748817] as [number, number], // [longitude, latitude]
+    coordinates: [79.8567, 6.879] as [number, number], // [longitude, latitude]
   },
 ];
 
@@ -68,6 +68,7 @@ export default function CheckoutPage() {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { placeOrder } = useCustomer();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(
@@ -116,6 +117,13 @@ export default function CheckoutPage() {
       // Create order request
       const orderData = {
         restaurantId: cartItems[0].restaurantId,
+        restaurantName: cartItems[0].restaurantName,
+        restaurantAddress: (cartItems[0] as any).restaurantAddress || "",
+        restaurantLocation: {
+          coordinates: (cartItems[0] as any).restaurantLocation?.coordinates || [
+            79.8612, 6.9271,
+          ],
+        },
         items: orderItems,
         subtotal,
         tax,
@@ -128,18 +136,16 @@ export default function CheckoutPage() {
           city: selectedAddress.city,
           state: selectedAddress.state,
           zipCode: selectedAddress.zipCode,
-          coordinates: selectedAddress.coordinates,
+          coordinates: selectedAddress.coordinates, // Already in [longitude, latitude] format
           location: {
             type: "Point" as const,
-            coordinates: selectedAddress.coordinates, // Make sure coordinates are in [longitude, latitude] format
+            coordinates: selectedAddress.coordinates, // Coordinates are in [longitude, latitude] format
           },
         },
         deliveryInstructions: "",
         specialInstructions: specialInstructions,
+        paymentDetails: undefined as { cardLast4: string; cardBrand: string } | undefined,
       };
-
-      // Create order
-      const orderResponse = await orderApi.createOrder(orderData);
 
       // Process payment if not cash on delivery
       if (paymentMethod !== "cash") {
@@ -149,26 +155,25 @@ export default function CheckoutPage() {
           cardBrand: getCardBrand(cardDetails.cardNumber),
         };
 
-        // Process payment
-        await paymentApi.processPayment({
-          orderId: orderResponse.data.order._id!,
-          paymentMethod: paymentMethod as any,
-          paymentDetails,
-        });
+        // Add payment details to order data
+        orderData.paymentDetails = paymentDetails;
       }
+
+      // Place order using our context that handles driver assignment
+      const orderId = await placeOrder(orderData);
 
       // Clear cart
       clearCart();
 
-      // Navigate to order details page
-      router.push(
-        `/customer/orders/${orderResponse.data.order._id}?status=success`
-      );
-
+      // Show success message
       toast({
         title: "Order placed successfully!",
-        description: "Your food is being prepared.",
+        description:
+          "Your food is being prepared. A driver will be assigned soon.",
       });
+
+      // Navigate to order tracking page
+      router.push(`/customer/orders/${orderId}?status=success`);
     } catch (error: any) {
       console.error("Error creating order:", error);
       toast({

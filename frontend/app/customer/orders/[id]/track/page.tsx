@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { useCustomer } from "@/contexts/customer-context";
 import { useToast } from "@/hooks/use-toast";
 import DeliveryTracking from "@/components/delivery-tracking";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,13 @@ export default function TrackOrderPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const { toast } = useToast();
+  const {
+    getOrderById,
+    currentOrder,
+    trackOrder,
+    stopTracking,
+    driverLocation,
+  } = useCustomer();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<any>(null);
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
@@ -22,24 +30,19 @@ export default function TrackOrderPage() {
 
     const fetchOrderAndDeliveryInfo = async () => {
       try {
-        // Fetch order details
-        const orderRes = await fetch(`/api/orders/${id}`);
+        // Fetch order details using our customer context
+        const orderData = await getOrderById(id as string);
+        if (orderData) {
+          setOrder(orderData);
 
-        if (!orderRes.ok) {
-          throw new Error("Failed to fetch order details");
-        }
-
-        const orderData = await orderRes.json();
-        setOrder(orderData.order);
-
-        // Fetch associated delivery
-        const deliveryRes = await fetch(`/api/deliveries/by-order/${id}`);
-
-        if (deliveryRes.ok) {
-          const deliveryData = await deliveryRes.json();
-          if (deliveryData.delivery) {
-            setDeliveryId(deliveryData.delivery._id);
+          // If the order has a delivery ID, set it for tracking
+          if (orderData.deliveryId) {
+            setDeliveryId(orderData.deliveryId);
+            // Start tracking the order
+            trackOrder(orderData.id);
           }
+        } else {
+          throw new Error("Failed to fetch order details");
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -54,7 +57,24 @@ export default function TrackOrderPage() {
     };
 
     fetchOrderAndDeliveryInfo();
-  }, [id, toast]);
+
+    // Clean up tracking when component unmounts
+    return () => {
+      if (id) {
+        stopTracking(id as string);
+      }
+    };
+  }, [id, toast, getOrderById, trackOrder, stopTracking]);
+
+  // Update local state when current order changes
+  useEffect(() => {
+    if (currentOrder && currentOrder.id === id) {
+      setOrder(currentOrder);
+      if (currentOrder.deliveryId && !deliveryId) {
+        setDeliveryId(currentOrder.deliveryId);
+      }
+    }
+  }, [currentOrder, id, deliveryId]);
 
   if (loading) {
     return (
@@ -135,6 +155,9 @@ export default function TrackOrderPage() {
           deliveryId={deliveryId}
           orderId={id as string}
           initialStatus={order.status}
+          driverLocation={driverLocation} // Pass driver location from context
+          driver={order.driver} // Pass driver info
+          estimatedDeliveryTime={order.estimatedDeliveryTime} // Pass ETA
         />
       ) : (
         <Card>

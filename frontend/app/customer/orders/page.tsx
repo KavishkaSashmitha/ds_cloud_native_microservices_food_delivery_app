@@ -1,134 +1,83 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Clock, Search, Loader2 } from "lucide-react";
-
+import { useState } from "react";
+import { useCustomer } from "@/contexts/customer-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OrderHistoryCard } from "@/components/order-history-card";
-import { Order, OrderStatus } from "@/lib/api";
-import { orderApi } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { MapPin, Clock, Search, ChevronRight, ShoppingBag } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
-interface OrderStatusGroup {
-  id: string;
-  name: string;
-  statuses?: OrderStatus[];
-}
+// Status colors for badges
+const statusColors: Record<string, string> = {
+  pending: "bg-yellow-500",
+  confirmed: "bg-blue-500",
+  preparing: "bg-blue-600",
+  ready_for_pickup: "bg-orange-500",
+  out_for_delivery: "bg-purple-500",
+  delivered: "bg-green-500",
+  cancelled: "bg-red-500",
+};
 
-// Order status groupings
-const orderStatuses: OrderStatusGroup[] = [
-  { id: "all", name: "All Orders" },
-  {
-    id: "active",
-    name: "Active",
-    statuses: [
-      "pending",
-      "confirmed",
-      "preparing",
-      "ready_for_pickup",
-      "out_for_delivery",
-    ],
-  },
-  { id: "completed", name: "Completed", statuses: ["delivered"] },
-  { id: "cancelled", name: "Cancelled", statuses: ["cancelled"] },
-];
+const statusLabels: Record<string, string> = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  preparing: "Preparing",
+  ready_for_pickup: "Ready for Pickup",
+  out_for_delivery: "Out for Delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
 
-export default function OrdersPage() {
-  const [activeTab, setActiveTab] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+export default function CustomerOrdersPage() {
+  const { orders } = useCustomer();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("active");
 
-  // Fetch orders when component mounts
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
+  // Separate orders into active and history
+  const activeOrders = orders.filter(order => 
+    !["delivered", "cancelled"].includes(order.status)
+  );
+  const orderHistory = orders.filter(order => 
+    ["delivered", "cancelled"].includes(order.status)
+  );
 
-        // Get status filter based on active tab
-        const activeGroup = orderStatuses.find((s) => s.id === activeTab);
-        const statusFilter = activeGroup?.statuses
-          ? activeGroup.statuses[0]
-          : undefined;
-
-        // Make API call to get orders
-        const response = await orderApi.getCustomerOrders({
-          status: statusFilter,
-          page: 1,
-          limit: 20,
-        });
-
-        setOrders(response.data.orders);
-        setError(null);
-      } catch (err: any) {
-        console.error("Failed to fetch orders:", err);
-        setError(err.response?.data?.message || "Failed to load orders");
-        toast({
-          title: "Error",
-          description: "Failed to load orders. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, [activeTab, toast]);
-
-  // Filter orders based on search query
-  const filteredOrders = orders.filter((order) => {
-    const orderId = order._id || "";
-    const restaurantId = order.restaurantId || "";
-    const itemNames =
-      order.items?.map((item) => item.name.toLowerCase()).join(" ") || "";
-
-    const searchLower = searchQuery.toLowerCase();
-
+  // Filter orders based on active tab and search query
+  const filteredActiveOrders = activeOrders.filter((order) => {
     return (
-      orderId.toLowerCase().includes(searchLower) ||
-      restaurantId.toLowerCase().includes(searchLower) ||
-      itemNames.includes(searchLower)
+      order.restaurantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.items.some((item) =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     );
   });
 
-  // Function to format date
-  const formatDate = (dateString: string | Date | undefined): string => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-    });
-  };
-
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    setSearchQuery("");
-  };
+  const filteredOrderHistory = orderHistory.filter((order) => {
+    return (
+      order.restaurantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.items.some((item) =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    );
+  });
 
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">My Orders</h1>
-        <p className="text-gray-600">View and track your orders</p>
+        <p className="text-gray-600">Track and manage your food orders</p>
       </div>
 
       <div className="mb-6 flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search by order ID or restaurant..."
+            placeholder="Search by restaurant or order ID..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -136,125 +85,168 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
+      <Tabs
+        defaultValue="active"
+        value={activeTab}
+        onValueChange={setActiveTab}
+      >
         <TabsList className="mb-6">
-          {orderStatuses.map((status) => (
-            <TabsTrigger key={status.id} value={status.id}>
-              {status.name}
-            </TabsTrigger>
-          ))}
+          <TabsTrigger value="active">Active Orders</TabsTrigger>
+          <TabsTrigger value="history">Order History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="mt-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="mr-2 h-6 w-6 animate-spin text-orange-500" />
-              <span>Loading orders...</span>
-            </div>
-          ) : error ? (
+        <TabsContent value="active" className="mt-0">
+          {filteredActiveOrders.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-10">
-                <p className="mb-2 text-center text-lg font-medium text-red-500">
-                  Error loading orders
-                </p>
-                <p className="mb-6 text-center text-gray-500">{error}</p>
-                <Button
-                  onClick={() => handleTabChange(activeTab)}
-                  className="bg-orange-500 hover:bg-orange-600"
-                >
-                  Try Again
-                </Button>
-              </CardContent>
-            </Card>
-          ) : filteredOrders.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-10">
-                <Clock className="mb-2 h-10 w-10 text-gray-400" />
+                <ShoppingBag className="h-10 w-10 text-gray-400 mb-3" />
                 <p className="mb-2 text-center text-lg font-medium">
-                  No orders found
+                  No active orders
                 </p>
-                <p className="mb-6 text-center text-gray-500">
+                <p className="text-center text-gray-500 mb-4">
                   {searchQuery
                     ? "Try a different search term"
-                    : activeTab === "all"
-                    ? "You haven't placed any orders yet"
-                    : `You don't have any ${activeTab.toLowerCase()} orders`}
+                    : "You don't have any active orders at the moment"}
                 </p>
-                <Link href="/customer/restaurants">
-                  <Button className="bg-orange-500 hover:bg-orange-600">
-                    Browse Restaurants
-                  </Button>
-                </Link>
+                <Button asChild>
+                  <Link href="/customer/restaurants">Order Food</Link>
+                </Button>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-4">
-              {filteredOrders.map((order) => (
-                <Link
-                  href={`/customer/orders/${order._id}`}
-                  key={order._id}
-                  className="block transition-opacity hover:opacity-90"
-                >
-                  <Card className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="p-4">
-                        <div className="mb-2 flex items-start justify-between">
+              {filteredActiveOrders.map((order) => (
+                <Link key={order.id} href={`/customer/orders/${order.id}`}>
+                  <Card className="hover:border-primary transition-colors">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium">
+                            {order.restaurantName}
+                          </h3>
+                          <Badge
+                            className={
+                              statusColors[order.status] || "bg-gray-500"
+                            }
+                          >
+                            {statusLabels[order.status] || "Unknown"}
+                          </Badge>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                      </div>
+
+                      <div className="flex items-start gap-2 mb-2 text-sm text-gray-600">
+                        <Clock className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        <span>
+                          Ordered{" "}
+                          {new Date(order.createdAt).toLocaleString([], {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
+
+                      <Separator className="my-2" />
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-2 text-sm">
                           <div>
-                            <h3 className="font-medium">
-                              Order #{order._id?.slice(-6).toUpperCase()}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              {formatDate(order.createdAt)}
-                            </p>
-                          </div>
-                          <div>
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                order.status === "delivered"
-                                  ? "bg-green-100 text-green-600"
-                                  : order.status === "cancelled"
-                                  ? "bg-red-100 text-red-600"
-                                  : "bg-orange-100 text-orange-600"
-                              }`}
-                            >
-                              {order.status
-                                ?.replace(/_/g, " ")
-                                .split(" ")
+                            <span className="font-medium">Items: </span>
+                            <span>
+                              {order.items
                                 .map(
-                                  (word) =>
-                                    word.charAt(0).toUpperCase() + word.slice(1)
+                                  (item) => `${item.quantity} × ${item.name}`
                                 )
-                                .join(" ")}
+                                .join(", ")}
                             </span>
                           </div>
                         </div>
-
-                        <div className="mb-3">
-                          <p className="text-sm font-medium">
-                            Restaurant ID: {order.restaurantId}
-                          </p>
+                        <div className="font-medium">
+                          Rs. {order.total.toFixed(2)}
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-                        <div className="mb-3">
-                          {order.items.slice(0, 2).map((item, index) => (
-                            <p key={index} className="text-sm">
-                              {item.quantity}× {item.name}
-                            </p>
-                          ))}
-                          {order.items.length > 2 && (
-                            <p className="text-sm text-gray-500">
-                              +{order.items.length - 2} more item(s)
-                            </p>
-                          )}
+        <TabsContent value="history" className="mt-0">
+          {filteredOrderHistory.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-10">
+                <ShoppingBag className="h-10 w-10 text-gray-400 mb-3" />
+                <p className="mb-2 text-center text-lg font-medium">
+                  No order history
+                </p>
+                <p className="text-center text-gray-500 mb-4">
+                  {searchQuery
+                    ? "Try a different search term"
+                    : "You haven't placed any orders yet"}
+                </p>
+                <Button asChild>
+                  <Link href="/customer/restaurants">Order Food</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {filteredOrderHistory.map((order) => (
+                <Link key={order.id} href={`/customer/orders/${order.id}`}>
+                  <Card className="hover:border-primary transition-colors">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium">
+                            {order.restaurantName}
+                          </h3>
+                          <Badge
+                            className={
+                              statusColors[order.status] || "bg-gray-500"
+                            }
+                          >
+                            {statusLabels[order.status] || "Unknown"}
+                          </Badge>
                         </div>
+                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                      </div>
 
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">
-                            ${order.total.toFixed(2)}
-                          </span>
-                          <Button variant="outline" size="sm" className="h-8">
-                            View Details
-                          </Button>
+                      <div className="flex items-start gap-2 mb-2 text-sm text-gray-600">
+                        <Clock className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                        <span>
+                          Ordered{" "}
+                          {new Date(order.createdAt).toLocaleString([], {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
+
+                      <Separator className="my-2" />
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-2 text-sm">
+                          <div>
+                            <span className="font-medium">Items: </span>
+                            <span>
+                              {order.items
+                                .map(
+                                  (item) => `${item.quantity} × ${item.name}`
+                                )
+                                .join(", ")}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="font-medium">
+                          Rs. {order.total.toFixed(2)}
                         </div>
                       </div>
                     </CardContent>

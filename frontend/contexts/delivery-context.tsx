@@ -1,25 +1,27 @@
-"use client";
-
-import type React from "react";
-
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { Socket, io } from "socket.io-client";
+import { useAuth } from "./auth-context";
 
-import { useToast } from "@/hooks/use-toast";
-import orderRoutes from "@/lib/orderRoutes";
-
-// Define delivery status types
-export type DeliveryStatus = "available" | "busy" | "offline";
+// Types
 export type OrderStatus =
-  | "ready_for_pickup"
+  | "pending"
+  | "assigned"
   | "picked_up"
-  | "on_the_way"
-  | "out_for_delivery"
+  | "in_transit"
   | "delivered"
   | "cancelled";
 
-// Define order interface
-export interface DeliveryOrder {
+export type DriverStatus = "offline" | "available" | "busy";
+
+export interface Order {
   id: string;
   restaurantId: string;
   restaurantName: string;
@@ -35,11 +37,8 @@ export interface DeliveryOrder {
     lng: number;
   };
   customerPhone: string;
-  items: {
-    name: string;
-    quantity: number;
-  }[];
-  total: number;
+  items: Array<{ name: string; quantity: number }>;
+  total?: number;
   status: OrderStatus;
   distance: number;
   estimatedTime: string;
@@ -47,409 +46,468 @@ export interface DeliveryOrder {
   createdAt: string;
 }
 
+export interface EarningDetail {
+  id: string;
+  orderId: string;
+  restaurantName: string;
+  amount: number;
+  date: string;
+}
+
 // Define delivery context interface
 interface DeliveryContextType {
-  status: DeliveryStatus;
-  setStatus: (status: DeliveryStatus) => void;
+  status: DriverStatus;
+  setStatus: (status: DriverStatus) => void;
   currentLocation: { lat: number; lng: number } | null;
-  updateLocation: (location: { lat: number; lng: number }) => void;
-  availableOrders: DeliveryOrder[];
-  currentOrder: DeliveryOrder | null;
+  availableOrders: Order[];
+  currentOrder: Order | null;
+  orderHistory: Order[];
+  earnings: {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+    allTime: number;
+    earnings: EarningDetail[];
+  };
+  isLoading: boolean;
   acceptOrder: (orderId: string) => Promise<void>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
   completeOrder: (orderId: string) => Promise<void>;
   cancelOrder: (orderId: string, reason: string) => Promise<void>;
-  orderHistory: DeliveryOrder[];
-  earnings: {
-    today: number;
-    week: number;
-    month: number;
-  };
-  isLoading: boolean;
-  locationWatchId: number | null;
   startLocationTracking: () => void;
   stopLocationTracking: () => void;
-  refreshOrders: () => void;
-  calculateDistance: (
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number
-  ) => number;
+  refreshOrders: () => Promise<void>;
 }
 
-// Create the delivery context
+// Create context
 const DeliveryContext = createContext<DeliveryContextType | undefined>(
   undefined
 );
+
+// Get random coordinates near a given point
+const getRandomNearbyCoords = (lat: number, lng: number, radiusKm = 5) => {
+  // Earth's radius in km
+  const earthRadius = 6371;
+
+  // Convert radius from km to radians
+  const radiusInRad = radiusKm / earthRadius;
+
+  // Random angle
+  const randomAngle = Math.random() * Math.PI * 2;
+
+  // Random distance within radius
+  const randomDist = Math.random() * radiusInRad;
+
+  // Calculate new coordinates
+  const newLat = lat + randomDist * Math.sin(randomAngle);
+  const newLng = lng + randomDist * Math.cos(randomAngle);
+
+  return { lat: newLat, lng: newLng };
+};
+
+// Calculate distance between two points
+const calculateDistance = (
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number => {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
 
 // Delivery provider component
 export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
-  const [status, setStatus] = useState<DeliveryStatus>("offline");
+  const { user } = useAuth();
+
+  const [status, setStatus] = useState<DriverStatus>("offline");
   const [currentLocation, setCurrentLocation] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
-  const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
-  const [currentOrder, setCurrentOrder] = useState<DeliveryOrder | null>(null);
-  const [orderHistory, setOrderHistory] = useState<DeliveryOrder[]>([]);
+  const [availableOrders, setAvailableOrders] = useState<Order[]>([]);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const [orderHistory, setOrderHistory] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  // Earnings state
   const [earnings, setEarnings] = useState({
-    today: 1050,
-    week: 7350,
-    month: 29400,
+    today: 0,
+    thisWeek: 0,
+    thisMonth: 0,
+    allTime: 0,
+    earnings: [] as EarningDetail[],
   });
-  const locationWatchIdRef = useRef<number | null>(null);
 
-  // Calculate distance between two coordinates using Haversine formula
-  const calculateDistance = (
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number
-  ): number => {
-    const R = 6371; // Earth's radius in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLng = ((lng2 - lng1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return Number(distance.toFixed(1));
-  };
+  // Location tracking
+  const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Update orders with current distances whenever location changes
-  const updateOrderDistances = (location: { lat: number; lng: number }) => {
-    if (!location) return;
+  // Initialize with mock data when the component mounts
+  useEffect(() => {
+    // Set base location in Colombo, Sri Lanka
+    const baseLocation = { lat: 6.9271, lng: 79.8612 };
+    setCurrentLocation(baseLocation);
 
-    // Update available orders with current distance
-    const updatedOrders = availableOrders.map((order) => {
-      const destination =
-        order.status === "ready_for_pickup"
-          ? order.restaurantLocation
-          : order.customerLocation;
+    // Create mock orders when driver is online
+    if (status === "available") {
+      const mockOrders: Order[] = Array.from({ length: 5 }, (_, i) => {
+        const restaurantLocation = getRandomNearbyCoords(
+          baseLocation.lat,
+          baseLocation.lng,
+          8
+        );
+        const customerLocation = getRandomNearbyCoords(
+          restaurantLocation.lat,
+          restaurantLocation.lng,
+          5
+        );
 
-      const distance = calculateDistance(
-        location.lat,
-        location.lng,
-        destination.lat,
-        destination.lng
+        const distance = calculateDistance(
+          restaurantLocation.lat,
+          restaurantLocation.lng,
+          customerLocation.lat,
+          customerLocation.lng
+        );
+
+        // Calculate earnings based on distance
+        const earnings = 200 + distance * 100; // Base fee + per km fee
+
+        return {
+          id: `order-${Date.now()}-${i}`,
+          restaurantId: `rest-${i}`,
+          restaurantName: [
+            "Burger Palace",
+            "Pizza Planet",
+            "Noodle House",
+            "Curry Corner",
+            "Sushi Express",
+          ][i % 5],
+          restaurantAddress: `${i * 100 + 100} Main St, Colombo`,
+          restaurantLocation,
+          customerName: ["Alex", "Sam", "Jordan", "Casey", "Taylor"][i % 5],
+          customerAddress: `${i * 100 + 200} Park Ave, Colombo`,
+          customerLocation,
+          customerPhone: `077-${1000000 + i}`,
+          items: [
+            {
+              name: ["Burger", "Pizza", "Noodles", "Curry", "Sushi"][i % 5],
+              quantity: 1 + (i % 3),
+            },
+            {
+              name: [
+                "Fries",
+                "Garlic Bread",
+                "Spring Rolls",
+                "Rice",
+                "Miso Soup",
+              ][i % 5],
+              quantity: 1,
+            },
+          ],
+          status: "pending" as OrderStatus,
+          distance,
+          estimatedTime: `${Math.ceil(distance * 5) + 10} min`,
+          earnings,
+          createdAt: new Date(Date.now() - i * 60000).toISOString(), // Orders staggered by 1 minute
+        };
+      });
+
+      setAvailableOrders(mockOrders);
+    } else {
+      setAvailableOrders([]);
+    }
+
+    // Mock order history data
+    const mockOrderHistory: Order[] = Array.from({ length: 10 }, (_, i) => {
+      const restaurantLocation = getRandomNearbyCoords(
+        baseLocation.lat,
+        baseLocation.lng,
+        8
+      );
+      const customerLocation = getRandomNearbyCoords(
+        restaurantLocation.lat,
+        restaurantLocation.lng,
+        5
       );
 
-      return { ...order, distance };
+      const distance = calculateDistance(
+        restaurantLocation.lat,
+        restaurantLocation.lng,
+        customerLocation.lat,
+        customerLocation.lng
+      );
+
+      const earnings = 200 + distance * 100;
+      const status = i % 7 === 0 ? "cancelled" : "delivered";
+
+      return {
+        id: `past-order-${i}`,
+        restaurantId: `rest-past-${i}`,
+        restaurantName: [
+          "Burger Palace",
+          "Pizza Planet",
+          "Noodle House",
+          "Curry Corner",
+          "Sushi Express",
+        ][i % 5],
+        restaurantAddress: `${i * 100 + 100} Main St, Colombo`,
+        restaurantLocation,
+        customerName: ["Alex", "Sam", "Jordan", "Casey", "Taylor"][i % 5],
+        customerAddress: `${i * 100 + 200} Park Ave, Colombo`,
+        customerLocation,
+        customerPhone: `077-${1000000 + i}`,
+        items: [
+          {
+            name: ["Burger", "Pizza", "Noodles", "Curry", "Sushi"][i % 5],
+            quantity: 1 + (i % 3),
+          },
+          {
+            name: [
+              "Fries",
+              "Garlic Bread",
+              "Spring Rolls",
+              "Rice",
+              "Miso Soup",
+            ][i % 5],
+            quantity: 1,
+          },
+        ],
+        status: status as OrderStatus,
+        distance,
+        estimatedTime: `${Math.ceil(distance * 5) + 10} min`,
+        earnings,
+        createdAt: new Date(Date.now() - (i + 1) * 86400000).toISOString(), // Past orders from previous days
+      };
     });
 
-    setAvailableOrders(updatedOrders);
+    setOrderHistory(mockOrderHistory);
 
-    // Update current order with current distance if exists
-    if (currentOrder) {
-      const destination =
-        currentOrder.status === "ready_for_pickup"
-          ? currentOrder.restaurantLocation
-          : currentOrder.customerLocation;
+    // Mock earnings data
+    const totalEarnings = mockOrderHistory
+      .filter((order) => order.status === "delivered")
+      .reduce((sum, order) => sum + order.earnings, 0);
 
-      const distance = calculateDistance(
-        location.lat,
-        location.lng,
-        destination.lat,
-        destination.lng
-      );
+    const earningDetails: EarningDetail[] = mockOrderHistory
+      .filter((order) => order.status === "delivered")
+      .map((order) => ({
+        id: `earning-${order.id}`,
+        orderId: order.id,
+        restaurantName: order.restaurantName,
+        amount: order.earnings,
+        date: order.createdAt,
+      }));
 
-      setCurrentOrder({ ...currentOrder, distance });
-    }
-  };
+    setEarnings({
+      today: Math.round(totalEarnings * 0.15),
+      thisWeek: Math.round(totalEarnings * 0.6),
+      thisMonth: totalEarnings,
+      allTime: Math.round(totalEarnings * 1.2), // Just a bit more for "all time"
+      earnings: earningDetails,
+    });
+  }, [status]);
 
-  // Real-time location tracking
-  const startLocationTracking = () => {
-    if (!navigator.geolocation) {
-      toast({
-        title: "Location Error",
-        description: "Geolocation is not supported by your browser",
-        variant: "destructive",
-      });
+  // Connect to WebSocket when driver is active
+  useEffect(() => {
+    if (status === "offline") {
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
+      }
       return;
     }
 
-    // Clear any existing watch
-    if (locationWatchIdRef.current) {
-      navigator.geolocation.clearWatch(locationWatchIdRef.current);
+    // Connect to WebSocket server for real-time updates
+    const socketUrl =
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+    const newSocket = io(socketUrl, {
+      transports: ["websocket"],
+      auth: { token: localStorage.getItem("token") || "mock-token" },
+    });
+
+    setSocket(newSocket);
+
+    // Handle connection events
+    newSocket.on("connect", () => {
+      console.log("Socket.IO connected successfully for delivery tracking");
+
+      // Join driver's room (in real app, this would use the driver's ID)
+      // Using optional chaining with fallback - adjust the property name based on your User type
+      const driverId = user?._id || user?.email || "driver1";
+      newSocket.emit("join_driver_room", driverId);
+
+      // Join delivery tracking room if there's a current order
+      if (currentOrder) {
+        newSocket.emit("track_delivery", currentOrder.id);
+      }
+    });
+
+    // Handle new delivery assignments
+    newSocket.on("new_delivery_assignment", (data) => {
+      console.log("Received new delivery assignment:", data);
+      toast({
+        title: "New Delivery Assignment",
+        description: `You have a new order from ${data.restaurantName}`,
+      });
+
+      // In the real app, we'd fetch the full order details here
+      refreshOrders();
+    });
+
+    // Handle errors
+    newSocket.on("error", (error) => {
+      console.error("Socket error:", error);
+      toast({
+        title: "Connection Error",
+        description: error.message || "Error connecting to the delivery system",
+        variant: "destructive",
+      });
+    });
+
+    return () => {
+      if (newSocket.connected) {
+        if (currentOrder) {
+          newSocket.emit("stop_tracking", currentOrder.id);
+        }
+        newSocket.disconnect();
+      }
+    };
+  }, [status, currentOrder?.id]);
+
+  // Start location tracking
+  const startLocationTracking = () => {
+    // Clear any existing interval
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current);
     }
 
-    // Start watching position with high accuracy
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const newLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
+    // For demo, we'll simulate location updates
+    // In a real app, we'd use the Geolocation API
+    locationIntervalRef.current = setInterval(() => {
+      if (!currentLocation) return;
 
-        setCurrentLocation(newLocation);
-        updateOrderDistances(newLocation);
+      // If there's a current order, simulate movement toward the destination
+      if (currentOrder && socket) {
+        // Determine destination based on order status
+        const destination =
+          currentOrder.status === "assigned" ||
+          currentOrder.status === "pending"
+            ? currentOrder.restaurantLocation
+            : currentOrder.customerLocation;
 
-        // In a real app, send location updates to backend
-        console.log("Location updated (real-time):", newLocation);
-      },
-      (error) => {
-        console.error("Error tracking location:", error);
+        // Calculate direction vector
+        const lat = currentLocation.lat;
+        const lng = currentLocation.lng;
 
-        // Handle specific error codes
-        if (error.code === 3) {
-          // TIMEOUT error
-          toast({
-            title: "Location Timeout",
-            description:
-              "Getting your location is taking longer than expected. Trying with lower accuracy...",
-            variant: "destructive",
-          });
+        const latDiff = destination.lat - lat;
+        const lngDiff = destination.lng - lng;
 
-          // Try again with lower accuracy as a fallback
-          setTimeout(() => {
-            const fallbackWatchId = navigator.geolocation.watchPosition(
-              (position) => {
-                const newLocation = {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude,
-                };
-                setCurrentLocation(newLocation);
-                updateOrderDistances(newLocation);
-              },
-              (fallbackError) => {
-                console.error("Fallback location error:", fallbackError);
-                toast({
-                  title: "Location Error",
-                  description:
-                    "Could not determine your location. Please check your device settings.",
-                  variant: "destructive",
-                });
+        const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
 
-                // Set a default location if everything fails (user's approximate location or central city location)
-                // Only for demo purposes - in production you should handle this differently
-                if (!currentLocation) {
-                  const defaultLocation = { lat: 6.9271, lng: 79.8612 }; // Default to Colombo city center
-                  setCurrentLocation(defaultLocation);
-                  updateOrderDistances(defaultLocation);
-                  toast({
-                    title: "Using Default Location",
-                    description:
-                      "Using an approximate location. Please enable location services for better accuracy.",
-                  });
-                }
-              },
-              {
-                enableHighAccuracy: false, // Try with lower accuracy
-                maximumAge: 60000, // Accept positions up to 1 minute old
-                timeout: 20000, // Wait longer
-              }
-            );
-            locationWatchIdRef.current = fallbackWatchId;
-          }, 1000);
-        } else if (error.code === 1) {
-          // PERMISSION_DENIED
-          toast({
-            title: "Location Access Denied",
-            description:
-              "Please enable location services to use the delivery features.",
-            variant: "destructive",
-          });
+        if (distance < 0.0005) {
+          // Very close to destination, update order status
+          if (
+            currentOrder.status === "assigned" ||
+            currentOrder.status === "pending"
+          ) {
+            updateOrderStatus(currentOrder.id, "picked_up");
+          } else if (
+            currentOrder.status === "picked_up" ||
+            currentOrder.status === "in_transit"
+          ) {
+            updateOrderStatus(currentOrder.id, "delivered");
+          }
         } else {
-          // Other errors
-          toast({
-            title: "Location Error",
-            description: `Failed to track location: ${error.message}`,
-            variant: "destructive",
+          // Move toward destination
+          const speed = 0.0005; // Adjust this for faster/slower movement
+          const ratio = speed / distance;
+
+          const newLat = lat + latDiff * ratio;
+          const newLng = lng + lngDiff * ratio;
+
+          // Update location
+          const newLocation = { lat: newLat, lng: newLng };
+          setCurrentLocation(newLocation);
+
+          // Send location update to server via Socket.IO
+          socket.emit("location_update", {
+            latitude: newLocation.lat,
+            longitude: newLocation.lng,
+            deliveryId: currentOrder.id,
           });
         }
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 15000, // Accept positions up to 15 seconds old
-        timeout: 15000, // Wait up to 15 seconds before timing out
+      } else {
+        // If no current order, just add small random movement
+        const newLocation = {
+          lat: currentLocation.lat + (Math.random() - 0.5) * 0.0005,
+          lng: currentLocation.lng + (Math.random() - 0.5) * 0.0005,
+        };
+        setCurrentLocation(newLocation);
       }
-    );
+    }, 2000);
 
-    locationWatchIdRef.current = watchId;
+    return () => {
+      if (locationIntervalRef.current) {
+        clearInterval(locationIntervalRef.current);
+      }
+    };
   };
 
   // Stop location tracking
   const stopLocationTracking = () => {
-    if (locationWatchIdRef.current !== null && navigator.geolocation) {
-      navigator.geolocation.clearWatch(locationWatchIdRef.current);
-      locationWatchIdRef.current = null;
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current);
+      locationIntervalRef.current = null;
     }
-  };
-
-  // Refresh available orders
-  const refreshOrders = async () => {
-    if (status !== "available") return;
-
-    setIsLoading(true);
-
-    try {
-      // Fetch new orders from the backend using the proper API call
-      const response = await orderRoutes.getReadyForPickupOrders();
-
-      if (response?.data?.orders) {
-        const apiOrders = response.data.orders;
-        console.log("Received orders from API:", apiOrders);
-
-        // Convert API orders to the format expected by the UI
-        const convertedOrders: DeliveryOrder[] = apiOrders.map((order) => ({
-          id: order._id || "", // Ensure 'id' is always a string
-          restaurantId: order.restaurantId,
-          restaurantName: `Restaurant #${order.restaurantId.substring(0, 5)}`,
-          restaurantAddress:
-            order.deliveryAddress?.street || "Restaurant address",
-          restaurantLocation: {
-            lat: order.deliveryAddress?.location?.coordinates?.[1] || 6.9271,
-            lng: order.deliveryAddress?.location?.coordinates?.[0] || 79.8612,
-          },
-          customerName: `Customer #${order.customerId.substring(0, 5)}`,
-          customerAddress: `${order.deliveryAddress?.street || ""}, ${
-            order.deliveryAddress?.city || ""
-          }`,
-          customerLocation: {
-            lat: order.deliveryAddress?.location?.coordinates?.[1] || 6.9271,
-            lng: order.deliveryAddress?.location?.coordinates?.[0] || 79.8612,
-          },
-          customerPhone: "N/A",
-          items: order.items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-          })),
-          total: order.total,
-          status: order.status as OrderStatus,
-          distance: 0,
-          estimatedTime: "15-20 min",
-          earnings: Math.round(order.total * 0.1),
-          createdAt:
-            typeof order.createdAt === "string"
-              ? order.createdAt
-              : order.createdAt?.toISOString() || new Date().toISOString(), // Ensure 'createdAt' is always a string
-        }));
-
-        setAvailableOrders(convertedOrders);
-
-        if (currentLocation) {
-          updateOrderDistances(currentLocation);
-        }
-
-        toast({
-          title: "Orders Updated",
-          description: `Found ${convertedOrders.length} orders ready for pickup`,
-        });
-      } else {
-        setAvailableOrders([]);
-        toast({
-          title: "No Orders",
-          description: "No orders are currently ready for pickup",
-        });
-      }
-    } catch (error) {
-      console.error("Error refreshing orders:", error);
-      toast({
-        title: "Failed to refresh orders",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-
-      // For demonstration purposes only, provide some mock data
-      // so the app doesn't look empty. Remove this in production.
-      setAvailableOrders([
-        {
-          id: "mock-1",
-          restaurantId: "rest-1",
-          restaurantName: "Burger Palace",
-          restaurantAddress: "123 Main St",
-          restaurantLocation: { lat: 6.9271, lng: 79.8612 },
-          customerName: "John D.",
-          customerAddress: "456 Side St, Colombo",
-          customerLocation: { lat: 6.9344, lng: 79.8528 },
-          customerPhone: "N/A",
-          items: [{ name: "Burger", quantity: 2 }],
-          total: 1200,
-          status: "ready_for_pickup",
-          distance: 2.3,
-          estimatedTime: "15-20 min",
-          earnings: 200,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Initialize location and load available orders when status changes
-  useEffect(() => {
-    if (status === "available") {
-      // Start location tracking
-      startLocationTracking();
-
-      // Load available orders
-      refreshOrders();
-    } else if (status === "offline") {
-      // Stop location tracking when offline
-      stopLocationTracking();
-      setAvailableOrders([]);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      stopLocationTracking();
-    };
-  }, [status]);
-
-  // Update location manually (called from UI)
-  const updateLocation = (location: { lat: number; lng: number }) => {
-    setCurrentLocation(location);
-    updateOrderDistances(location);
-
-    // In a real app, this would call the Location Service microservice
-    console.log("Location manually updated:", location);
   };
 
   // Accept an order
   const acceptOrder = async (orderId: string) => {
     setIsLoading(true);
     try {
-      // Call the backend API to accept the order
-      const response = await orderRoutes.acceptOrder(orderId);
-
       // Find the order in available orders
       const order = availableOrders.find((o) => o.id === orderId);
       if (!order) {
         throw new Error("Order not found");
       }
 
-      // Update order status to out_for_delivery (matching backend status)
-      const updatedOrder = {
-        ...order,
-        status: "out_for_delivery" as OrderStatus,
-      };
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update order status to assigned
+      const updatedOrder = { ...order, status: "assigned" as OrderStatus };
+
+      // Update state
       setCurrentOrder(updatedOrder);
       setStatus("busy");
-
-      // Remove from available orders
       setAvailableOrders(availableOrders.filter((o) => o.id !== orderId));
 
-      toast({
-        title: "Order accepted",
-        description: `You've accepted order #${orderId}`,
-      });
+      // Simulate socket.io connection in a real app
+      if (socket) {
+        socket.emit("track_delivery", orderId);
+      }
 
-      // Navigate to the order detail page
+      // Start location tracking
+      startLocationTracking();
+
+      // Navigate to order page
       router.push(`/delivery/orders/${orderId}`);
     } catch (error) {
       console.error("Error accepting order:", error);
       toast({
-        title: "Failed to accept order",
-        description: "Please try again",
+        title: "Error",
+        description: "Could not accept the order. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -458,29 +516,45 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Update order status
-  const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     setIsLoading(true);
     try {
-      // In a real app, this would call the Order Service and Delivery Service microservices
-      // to update the order status
+      if (!currentOrder || currentOrder.id !== orderId) {
+        throw new Error("No active order found");
+      }
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Update current order status
-      if (currentOrder && currentOrder.id === orderId) {
-        setCurrentOrder({ ...currentOrder, status });
+      const updatedOrder = { ...currentOrder, status: newStatus };
+
+      // Send update via socket.io
+      if (socket) {
+        socket.emit("delivery_status_update", {
+          deliveryId: orderId,
+          status: newStatus,
+          notes: `Status updated to ${newStatus} by driver`,
+        });
+      }
+
+      // Update state
+      setCurrentOrder(updatedOrder);
+
+      // For delivered orders, auto-complete after a short delay
+      if (newStatus === "delivered") {
+        setTimeout(() => {
+          completeOrder(orderId);
+        }, 3000);
       }
 
       toast({
-        title: "Order status updated",
-        description: `Order #${orderId} is now ${status.replace(/_/g, " ")}`,
+        description: `Order status updated to ${newStatus.replace(/_/g, " ")}`,
       });
     } catch (error) {
       console.error("Error updating order status:", error);
       toast({
-        title: "Failed to update order status",
-        description: "Please try again",
+        title: "Error",
+        description: "Could not update the order status. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -488,51 +562,66 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Complete an order
+  // Complete an order - moves it to history
   const completeOrder = async (orderId: string) => {
     setIsLoading(true);
     try {
-      // In a real app, this would call the Order Service, Delivery Service, and Payment Service microservices
-      // to mark the order as delivered and update earnings
+      if (!currentOrder || currentOrder.id !== orderId) {
+        throw new Error("No active order found");
+      }
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      if (currentOrder && currentOrder.id === orderId) {
-        // Add to order history
-        const completedOrder = {
-          ...currentOrder,
-          status: "delivered" as OrderStatus,
-        };
-        setOrderHistory([completedOrder, ...orderHistory]);
+      const completedOrder = {
+        ...currentOrder,
+        status: "delivered" as OrderStatus,
+      };
 
-        // Update earnings
-        setEarnings({
-          ...earnings,
-          today: earnings.today + completedOrder.earnings,
-          week: earnings.week + completedOrder.earnings,
-          month: earnings.month + completedOrder.earnings,
-        });
+      // Update state
+      setOrderHistory([completedOrder, ...orderHistory]);
 
-        // Clear current order
-        setCurrentOrder(null);
-        setStatus("available");
+      // Update earnings
+      const newEarnings = {
+        ...earnings,
+        today: earnings.today + completedOrder.earnings,
+        thisWeek: earnings.thisWeek + completedOrder.earnings,
+        thisMonth: earnings.thisMonth + completedOrder.earnings,
+        allTime: earnings.allTime + completedOrder.earnings,
+        earnings: [
+          {
+            id: `earning-${completedOrder.id}`,
+            orderId: completedOrder.id,
+            restaurantName: completedOrder.restaurantName,
+            amount: completedOrder.earnings,
+            date: new Date().toISOString(),
+          },
+          ...earnings.earnings,
+        ],
+      };
 
-        toast({
-          title: "Order completed",
-          description: `You've earned Rs.${completedOrder.earnings.toFixed(
-            2
-          )} for this delivery`,
-        });
+      setEarnings(newEarnings);
 
-        // Navigate back to dashboard
-        router.push("/delivery/dashboard");
-      }
+      // Reset current order
+      setCurrentOrder(null);
+
+      // Change status back to available
+      setStatus("available");
+
+      toast({
+        title: "Order Completed",
+        description: `Delivery completed successfully. You earned Rs. ${completedOrder.earnings.toFixed(
+          2
+        )}`,
+      });
+
+      // Navigate back to dashboard
+      router.push("/delivery/dashboard");
     } catch (error) {
       console.error("Error completing order:", error);
       toast({
-        title: "Failed to complete order",
-        description: "Please try again",
+        title: "Error",
+        description: "Could not complete the order. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -544,37 +633,137 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   const cancelOrder = async (orderId: string, reason: string) => {
     setIsLoading(true);
     try {
-      // In a real app, this would call the Order Service and Delivery Service microservices
-      // to cancel the order and reassign it to another driver
+      if (!currentOrder || currentOrder.id !== orderId) {
+        throw new Error("No active order found");
+      }
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      if (currentOrder && currentOrder.id === orderId) {
-        // Add to order history with cancelled status
-        const cancelledOrder = {
-          ...currentOrder,
-          status: "cancelled" as OrderStatus,
-        };
-        setOrderHistory([cancelledOrder, ...orderHistory]);
+      const cancelledOrder = {
+        ...currentOrder,
+        status: "cancelled" as OrderStatus,
+      };
 
-        // Clear current order
-        setCurrentOrder(null);
-        setStatus("available");
-
-        toast({
-          title: "Order cancelled",
-          description: `Order #${orderId} has been cancelled`,
+      // Send update via socket.io
+      if (socket) {
+        socket.emit("delivery_status_update", {
+          deliveryId: orderId,
+          status: "cancelled",
+          notes: reason,
         });
-
-        // Navigate back to dashboard
-        router.push("/delivery/dashboard");
       }
+
+      // Update state
+      setOrderHistory([cancelledOrder, ...orderHistory]);
+      setCurrentOrder(null);
+
+      // Change status back to available
+      setStatus("available");
+
+      toast({
+        title: "Order Cancelled",
+        description: `Order has been cancelled. Reason: ${reason}`,
+        variant: "destructive",
+      });
+
+      // Navigate back to dashboard
+      router.push("/delivery/dashboard");
     } catch (error) {
       console.error("Error cancelling order:", error);
       toast({
-        title: "Failed to cancel order",
-        description: "Please try again",
+        title: "Error",
+        description: "Could not cancel the order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Refresh available orders
+  const refreshOrders = async () => {
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // In a real app, we would fetch orders from the server
+      // For demo, we just regenerate mock orders
+
+      if (!currentLocation) return;
+
+      const mockOrders: Order[] = Array.from(
+        { length: Math.floor(Math.random() * 3) + 3 },
+        (_, i) => {
+          const restaurantLocation = getRandomNearbyCoords(
+            currentLocation.lat,
+            currentLocation.lng,
+            8
+          );
+          const customerLocation = getRandomNearbyCoords(
+            restaurantLocation.lat,
+            restaurantLocation.lng,
+            5
+          );
+
+          const distance = calculateDistance(
+            restaurantLocation.lat,
+            restaurantLocation.lng,
+            customerLocation.lat,
+            customerLocation.lng
+          );
+
+          // Calculate earnings based on distance
+          const earnings = 200 + distance * 100; // Base fee + per km fee
+
+          return {
+            id: `order-${Date.now()}-${i}`,
+            restaurantId: `rest-${i}`,
+            restaurantName: [
+              "Burger Palace",
+              "Pizza Planet",
+              "Noodle House",
+              "Curry Corner",
+              "Sushi Express",
+            ][i % 5],
+            restaurantAddress: `${i * 100 + 100} Main St, Colombo`,
+            restaurantLocation,
+            customerName: ["Alex", "Sam", "Jordan", "Casey", "Taylor"][i % 5],
+            customerAddress: `${i * 100 + 200} Park Ave, Colombo`,
+            customerLocation,
+            customerPhone: `077-${1000000 + i}`,
+            items: [
+              {
+                name: ["Burger", "Pizza", "Noodles", "Curry", "Sushi"][i % 5],
+                quantity: 1 + (i % 3),
+              },
+              {
+                name: [
+                  "Fries",
+                  "Garlic Bread",
+                  "Spring Rolls",
+                  "Rice",
+                  "Miso Soup",
+                ][i % 5],
+                quantity: 1,
+              },
+            ],
+            status: "pending" as OrderStatus,
+            distance,
+            estimatedTime: `${Math.ceil(distance * 5) + 10} min`,
+            earnings,
+            createdAt: new Date(Date.now() - i * 60000).toISOString(), // Orders staggered by 1 minute
+          };
+        }
+      );
+
+      setAvailableOrders(mockOrders);
+    } catch (error) {
+      console.error("Error refreshing orders:", error);
+      toast({
+        title: "Error",
+        description: "Could not refresh orders. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -588,21 +777,18 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
         status,
         setStatus,
         currentLocation,
-        updateLocation,
         availableOrders,
         currentOrder,
+        orderHistory,
+        earnings,
+        isLoading,
         acceptOrder,
         updateOrderStatus,
         completeOrder,
         cancelOrder,
-        orderHistory,
-        earnings,
-        isLoading,
-        locationWatchId: locationWatchIdRef.current,
         startLocationTracking,
         stopLocationTracking,
         refreshOrders,
-        calculateDistance,
       }}
     >
       {children}

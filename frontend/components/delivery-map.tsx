@@ -12,19 +12,34 @@ import { MapPin, Navigation } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { DeliveryOrder } from "@/contexts/delivery-context";
+
+// Define the DeliveryOrder type locally since it's not exported from the context
+export interface DeliveryOrder {
+  id: string;
+  restaurantLocation: { lat: number; lng: number };
+  customerLocation: { lat: number; lng: number };
+  status: string;
+  restaurantName: string;
+  customerName: string;
+  distance: number;
+}
 
 interface DeliveryMapProps {
-  currentLocation: { lat: number; lng: number } | null;
-  orders: DeliveryOrder[];
+  currentLocation?: { lat: number; lng: number } | null;
+  orders?: DeliveryOrder[];
   currentOrder?: DeliveryOrder | null;
   height?: number;
   onMarkerClick?: (orderId: string) => void;
   showDirections?: boolean;
+  // Additional props used in delivery-tracking.tsx
+  driver?: { lat: number; lng: number } | null;
+  restaurant?: { lat: number; lng: number };
+  customer?: { lat: number; lng: number };
+  status?: string;
 }
 
 // Google Maps API key - in a real application, use environment variables
-const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY"; // Replace with your actual API key
+const GOOGLE_MAPS_API_KEY = "AIzaSyBa-KJNay-s95ncvsyOQChLjgn1_zHEEPY"; // Replace with your actual API key
 
 // Map container style
 const mapContainerStyle = {
@@ -49,11 +64,16 @@ const mapOptions = {
 
 export default function DeliveryMap({
   currentLocation,
-  orders,
+  orders = [],
   currentOrder,
   height = 400,
   onMarkerClick,
   showDirections = false,
+  // Additional props
+  driver,
+  restaurant,
+  customer,
+  status,
 }: DeliveryMapProps) {
   // Load the Google Maps JavaScript API
   const { isLoaded, loadError } = useJsApiLoader({
@@ -74,14 +94,24 @@ export default function DeliveryMap({
     mapRef.current = map;
   }, []);
 
+  // Use either driver location or currentLocation
+  const effectiveCurrentLocation = useMemo(() => {
+    return driver || currentLocation;
+  }, [driver, currentLocation]);
+
   // Calculate the map center based on current location
   const center = useMemo(() => {
-    return currentLocation || defaultCenter;
-  }, [currentLocation]);
+    return effectiveCurrentLocation || defaultCenter;
+  }, [effectiveCurrentLocation]);
 
   // Get directions between current location and destination
   useEffect(() => {
-    if (!isLoaded || !currentLocation || !showDirections || !currentOrder) {
+    if (
+      !isLoaded ||
+      !effectiveCurrentLocation ||
+      !showDirections ||
+      !currentOrder
+    ) {
       setDirections(null);
       return;
     }
@@ -102,7 +132,7 @@ export default function DeliveryMap({
 
     directionsService.route(
       {
-        origin: currentLocation,
+        origin: effectiveCurrentLocation,
         destination: destination,
         travelMode: google.maps.TravelMode.DRIVING,
       },
@@ -114,7 +144,7 @@ export default function DeliveryMap({
         }
       }
     );
-  }, [isLoaded, currentLocation, currentOrder, showDirections]);
+  }, [isLoaded, effectiveCurrentLocation, currentOrder, showDirections]);
 
   // Handle order marker click
   const handleMarkerClick = (order: DeliveryOrder) => {
@@ -151,7 +181,7 @@ export default function DeliveryMap({
   }
 
   // Show message if location data is unavailable
-  if (!currentLocation) {
+  if (!effectiveCurrentLocation) {
     return (
       <div
         className="flex items-center justify-center rounded-lg border bg-gray-50"
@@ -179,7 +209,7 @@ export default function DeliveryMap({
       >
         {/* Current location marker */}
         <Marker
-          position={currentLocation}
+          position={effectiveCurrentLocation}
           icon={{
             path: google.maps.SymbolPath.CIRCLE,
             scale: 8,
@@ -192,6 +222,38 @@ export default function DeliveryMap({
           animation={google.maps.Animation.BOUNCE}
           title="Your Location"
         />
+
+        {/* Restaurant location marker for tracking view */}
+        {restaurant && (
+          <Marker
+            position={restaurant}
+            icon={{
+              path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+              scale: 6,
+              fillColor: "#FF8C00",
+              fillOpacity: 1,
+              strokeColor: "#FFFFFF",
+              strokeWeight: 1,
+            }}
+            title="Restaurant Location"
+          />
+        )}
+
+        {/* Customer location marker for tracking view */}
+        {customer && (
+          <Marker
+            position={customer}
+            icon={{
+              path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+              scale: 6,
+              fillColor: "#F44336",
+              fillOpacity: 1,
+              strokeColor: "#FFFFFF",
+              strokeWeight: 1,
+            }}
+            title="Delivery Location"
+          />
+        )}
 
         {/* Order markers - only show available orders if there's no current order */}
         {(!currentOrder || !showDirections) &&
