@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useToast } from "@/hooks/use-toast";
+import orderRoutes from "@/lib/orderRoutes";
 
 // Define delivery status types
 export type DeliveryStatus = "available" | "busy" | "offline";
@@ -13,6 +14,7 @@ export type OrderStatus =
   | "ready_for_pickup"
   | "picked_up"
   | "on_the_way"
+  | "out_for_delivery"
   | "delivered"
   | "cancelled";
 
@@ -81,119 +83,6 @@ const DeliveryContext = createContext<DeliveryContextType | undefined>(
   undefined
 );
 
-// Mock data for available orders - using Sri Lanka coordinates for demo
-const mockAvailableOrders: DeliveryOrder[] = [
-  {
-    id: "ORD-1001",
-    restaurantId: "1",
-    restaurantName: "Burger Palace",
-    restaurantAddress: "123 Galle Road, Colombo 03",
-    restaurantLocation: { lat: 6.9271, lng: 79.8612 },
-    customerName: "John Perera",
-    customerAddress: "456 Duplication Road, Colombo 04",
-    customerLocation: { lat: 6.9344, lng: 79.8528 },
-    customerPhone: "+94 77 123 4567",
-    items: [
-      { name: "Classic Cheeseburger", quantity: 2 },
-      { name: "French Fries", quantity: 1 },
-    ],
-    total: 1800,
-    status: "ready_for_pickup",
-    distance: 2.3,
-    estimatedTime: "15-20 min",
-    earnings: 350,
-    createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "ORD-1002",
-    restaurantId: "2",
-    restaurantName: "Pizza Heaven",
-    restaurantAddress: "789 R.A. De Mel Mawatha, Colombo 05",
-    restaurantLocation: { lat: 6.9112, lng: 79.8537 },
-    customerName: "Malini Silva",
-    customerAddress: "101 Baseline Road, Colombo 08",
-    customerLocation: { lat: 6.9132, lng: 79.8796 },
-    customerPhone: "+94 77 987 6543",
-    items: [
-      { name: "Margherita Pizza", quantity: 1 },
-      { name: "Garlic Bread", quantity: 1 },
-    ],
-    total: 1650,
-    status: "ready_for_pickup",
-    distance: 1.8,
-    estimatedTime: "10-15 min",
-    earnings: 280,
-    createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "ORD-1003",
-    restaurantId: "3",
-    restaurantName: "Sushi Express",
-    restaurantAddress: "456 Marine Drive, Colombo 06",
-    restaurantLocation: { lat: 6.879, lng: 79.8567 },
-    customerName: "Amal Fernando",
-    customerAddress: "202 Havelock Road, Colombo 05",
-    customerLocation: { lat: 6.8914, lng: 79.8636 },
-    customerPhone: "+94 77 456 7890",
-    items: [
-      { name: "California Roll", quantity: 2 },
-      { name: "Miso Soup", quantity: 1 },
-    ],
-    total: 2200,
-    status: "ready_for_pickup",
-    distance: 3.1,
-    estimatedTime: "20-25 min",
-    earnings: 400,
-    createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-  },
-];
-
-// Mock data for order history
-const mockOrderHistory: DeliveryOrder[] = [
-  {
-    id: "ORD-1000",
-    restaurantId: "1",
-    restaurantName: "Burger Palace",
-    restaurantAddress: "123 Galle Road, Colombo 03",
-    restaurantLocation: { lat: 6.9271, lng: 79.8612 },
-    customerName: "Sarah Mendis",
-    customerAddress: "303 Flower Road, Colombo 07",
-    customerLocation: { lat: 6.9167, lng: 79.8487 },
-    customerPhone: "+94 77 234 5678",
-    items: [
-      { name: "Veggie Burger", quantity: 1 },
-      { name: "Onion Rings", quantity: 1 },
-    ],
-    total: 1300,
-    status: "delivered",
-    distance: 2.5,
-    estimatedTime: "15-20 min",
-    earnings: 275,
-    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "ORD-999",
-    restaurantId: "2",
-    restaurantName: "Pizza Heaven",
-    restaurantAddress: "789 R.A. De Mel Mawatha, Colombo 05",
-    restaurantLocation: { lat: 6.9112, lng: 79.8537 },
-    customerName: "David Perera",
-    customerAddress: "404 Nawala Road, Nugegoda",
-    customerLocation: { lat: 6.8649, lng: 79.8997 },
-    customerPhone: "+94 77 876 5432",
-    items: [
-      { name: "Pepperoni Pizza", quantity: 1 },
-      { name: "Soda", quantity: 2 },
-    ],
-    total: 1950,
-    status: "delivered",
-    distance: 4.2,
-    estimatedTime: "20-25 min",
-    earnings: 375,
-    createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-  },
-];
-
 // Delivery provider component
 export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -205,8 +94,7 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   } | null>(null);
   const [availableOrders, setAvailableOrders] = useState<DeliveryOrder[]>([]);
   const [currentOrder, setCurrentOrder] = useState<DeliveryOrder | null>(null);
-  const [orderHistory, setOrderHistory] =
-    useState<DeliveryOrder[]>(mockOrderHistory);
+  const [orderHistory, setOrderHistory] = useState<DeliveryOrder[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [earnings, setEarnings] = useState({
     today: 1050,
@@ -397,38 +285,104 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Refresh available orders
-  const refreshOrders = () => {
+  const refreshOrders = async () => {
     if (status !== "available") return;
 
     setIsLoading(true);
 
-    // In a real app, this would fetch new orders from the backend
-    // Simulate refreshing orders with slight variations
-    setTimeout(() => {
-      // Slightly modify mock orders for demonstration
-      const refreshedOrders = mockAvailableOrders.map((order) => ({
-        ...order,
-        distance: Math.max(0.5, order.distance + (Math.random() - 0.5)),
-        estimatedTime:
-          Math.random() > 0.5
-            ? order.estimatedTime
-            : `${parseInt(order.estimatedTime) + 5} min`,
-        earnings: Math.floor(order.earnings * (0.9 + Math.random() * 0.2)),
-      }));
+    try {
+      // Fetch new orders from the backend using the proper API call
+      const response = await orderRoutes.getReadyForPickupOrders();
 
-      setAvailableOrders(refreshedOrders);
+      if (response?.data?.orders) {
+        const apiOrders = response.data.orders;
+        console.log("Received orders from API:", apiOrders);
 
-      if (currentLocation) {
-        updateOrderDistances(currentLocation);
+        // Convert API orders to the format expected by the UI
+        const convertedOrders: DeliveryOrder[] = apiOrders.map((order) => ({
+          id: order._id || "", // Ensure 'id' is always a string
+          restaurantId: order.restaurantId,
+          restaurantName: `Restaurant #${order.restaurantId.substring(0, 5)}`,
+          restaurantAddress:
+            order.deliveryAddress?.street || "Restaurant address",
+          restaurantLocation: {
+            lat: order.deliveryAddress?.location?.coordinates?.[1] || 6.9271,
+            lng: order.deliveryAddress?.location?.coordinates?.[0] || 79.8612,
+          },
+          customerName: `Customer #${order.customerId.substring(0, 5)}`,
+          customerAddress: `${order.deliveryAddress?.street || ""}, ${
+            order.deliveryAddress?.city || ""
+          }`,
+          customerLocation: {
+            lat: order.deliveryAddress?.location?.coordinates?.[1] || 6.9271,
+            lng: order.deliveryAddress?.location?.coordinates?.[0] || 79.8612,
+          },
+          customerPhone: "N/A",
+          items: order.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+          })),
+          total: order.total,
+          status: order.status as OrderStatus,
+          distance: 0,
+          estimatedTime: "15-20 min",
+          earnings: Math.round(order.total * 0.1),
+          createdAt:
+            typeof order.createdAt === "string"
+              ? order.createdAt
+              : order.createdAt?.toISOString() || new Date().toISOString(), // Ensure 'createdAt' is always a string
+        }));
+
+        setAvailableOrders(convertedOrders);
+
+        if (currentLocation) {
+          updateOrderDistances(currentLocation);
+        }
+
+        toast({
+          title: "Orders Updated",
+          description: `Found ${convertedOrders.length} orders ready for pickup`,
+        });
+      } else {
+        setAvailableOrders([]);
+        toast({
+          title: "No Orders",
+          description: "No orders are currently ready for pickup",
+        });
       }
-
-      setIsLoading(false);
-
+    } catch (error) {
+      console.error("Error refreshing orders:", error);
       toast({
-        title: "Orders Updated",
-        description: `Found ${refreshedOrders.length} available orders nearby`,
+        title: "Failed to refresh orders",
+        description: "Please try again later",
+        variant: "destructive",
       });
-    }, 1000);
+
+      // For demonstration purposes only, provide some mock data
+      // so the app doesn't look empty. Remove this in production.
+      setAvailableOrders([
+        {
+          id: "mock-1",
+          restaurantId: "rest-1",
+          restaurantName: "Burger Palace",
+          restaurantAddress: "123 Main St",
+          restaurantLocation: { lat: 6.9271, lng: 79.8612 },
+          customerName: "John D.",
+          customerAddress: "456 Side St, Colombo",
+          customerLocation: { lat: 6.9344, lng: 79.8528 },
+          customerPhone: "N/A",
+          items: [{ name: "Burger", quantity: 2 }],
+          total: 1200,
+          status: "ready_for_pickup",
+          distance: 2.3,
+          estimatedTime: "15-20 min",
+          earnings: 200,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Initialize location and load available orders when status changes
@@ -438,7 +392,7 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
       startLocationTracking();
 
       // Load available orders
-      setAvailableOrders(mockAvailableOrders);
+      refreshOrders();
     } else if (status === "offline") {
       // Stop location tracking when offline
       stopLocationTracking();
@@ -464,11 +418,8 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
   const acceptOrder = async (orderId: string) => {
     setIsLoading(true);
     try {
-      // In a real app, this would call the Order Service and Delivery Service microservices
-      // to update the order status and assign it to the current driver
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call the backend API to accept the order
+      const response = await orderRoutes.acceptOrder(orderId);
 
       // Find the order in available orders
       const order = availableOrders.find((o) => o.id === orderId);
@@ -476,8 +427,11 @@ export function DeliveryProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Order not found");
       }
 
-      // Update order status
-      const updatedOrder = { ...order, status: "picked_up" as OrderStatus };
+      // Update order status to out_for_delivery (matching backend status)
+      const updatedOrder = {
+        ...order,
+        status: "out_for_delivery" as OrderStatus,
+      };
       setCurrentOrder(updatedOrder);
       setStatus("busy");
 

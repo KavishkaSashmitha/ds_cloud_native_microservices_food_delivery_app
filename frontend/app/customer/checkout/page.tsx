@@ -133,9 +133,10 @@ const [savedAddresses, setSavedAddresses] = useState([
           city: selectedAddress.city,
           state: selectedAddress.state,
           zipCode: selectedAddress.zipCode,
+          coordinates: selectedAddress.coordinates,
           location: {
             type: "Point" as const,
-            coordinates: selectedAddress.coordinates,
+            coordinates: selectedAddress.coordinates, // Make sure coordinates are in [longitude, latitude] format
           },
         },
         deliveryInstructions: "",

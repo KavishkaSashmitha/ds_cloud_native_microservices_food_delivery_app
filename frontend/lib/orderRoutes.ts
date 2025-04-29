@@ -144,6 +144,16 @@ export const orderRoutes = {
     longitude: number;
     maxDistance?: number;
   }) => api.get<Order[]>('/orders/nearby', { params }),
+  
+  // Get all ready for pickup orders
+  getReadyForPickupOrders: (params?: {
+    page?: number;
+    limit?: number;
+  }) => api.get<OrdersResponse>('/orders/ready-for-pickup', { params }),
+  
+  // Accept an order for delivery (delivery personnel)
+  acceptOrder: (orderId: string) => 
+    api.post<{ message: string; order: Order }>(`/orders/${orderId}/accept`),
 };
 
 // Payment endpoints

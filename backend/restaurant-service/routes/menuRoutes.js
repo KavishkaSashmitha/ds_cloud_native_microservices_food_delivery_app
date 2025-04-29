@@ -5,10 +5,24 @@ const { authenticateToken, authorizeRoles, isRestaurantOwner } = require("../mid
 
 const router = express.Router()
 
+// Public routes for menu items that don't require authentication
+
+// Get menu item by ID (public)
+// This specific route needs to come first to avoid conflict with the /:restaurantId route
+router.get("/item/:id", menuController.getMenuItemById)
+
+// Get menu items by restaurant ID (public for customers)
+router.get("/restaurant/:restaurantId", menuController.getMenuItemsByRestaurant)
+
+// Get menu items directly by restaurant ID (alternate URL pattern for frontend)
+router.get("/:restaurantId", menuController.getMenuItemsByRestaurant)
+
+// All routes below require authentication
+router.use(authenticateToken)
+
 // Create menu item (restaurant owner or admin only)
 router.post(
   "/",
-  authenticateToken,
   authorizeRoles("restaurant", "admin"),
   [
     body("restaurantId").notEmpty().withMessage("Restaurant ID is required"),
@@ -20,16 +34,9 @@ router.post(
   menuController.createMenuItem,
 )
 
-// Get menu items by restaurant ID (public)
-router.get("/restaurant/:restaurantId", menuController.getMenuItemsByRestaurant)
-
-// Get menu item by ID (public)
-router.get("/:id", menuController.getMenuItemById)
-
 // Update menu item (restaurant owner or admin only)
 router.put(
-  "/:id",
-  authenticateToken,
+  "/item/:id",
   authorizeRoles("restaurant", "admin"),
   [
     body("name").optional().notEmpty().withMessage("Item name cannot be empty"),
@@ -41,12 +48,11 @@ router.put(
 )
 
 // Delete menu item (restaurant owner or admin only)
-router.delete("/:id", authenticateToken, authorizeRoles("restaurant", "admin"), menuController.deleteMenuItem)
+router.delete("/item/:id", authorizeRoles("restaurant", "admin"), menuController.deleteMenuItem)
 
 // Bulk update menu item availability (restaurant owner or admin only)
 router.patch(
   "/availability",
-  authenticateToken,
   authorizeRoles("restaurant", "admin"),
   [
     body("restaurantId").notEmpty().withMessage("Restaurant ID is required"),

@@ -315,18 +315,27 @@ export default function OrderDetailPage() {
               <CardTitle>Order Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <Steps currentStep={getCurrentStep()}>
-                <Step
-                  title="Ready for Pickup"
-                  description="Pickup order from restaurant"
-                />
-                <Step
-                  title="Picked Up"
-                  description="Order collected from restaurant"
-                />
-                <Step title="On the Way" description="Delivering to customer" />
-                <Step title="Delivered" description="Order completed" />
-              </Steps>
+              <Steps 
+                currentStep={getCurrentStep()}
+                steps={[
+                  {
+                    title: "Ready for Pickup",
+                    description: "Pickup order from restaurant"
+                  },
+                  {
+                    title: "Picked Up",
+                    description: "Order collected from restaurant"
+                  },
+                  {
+                    title: "On the Way", 
+                    description: "Delivering to customer" 
+                  },
+                  {
+                    title: "Delivered", 
+                    description: "Order completed" 
+                  }
+                ]}
+              />
 
               <div className="mt-6 flex items-center justify-between">
                 <div className="flex items-center gap-2">

@@ -27,11 +27,22 @@ exports.createOrder = async (req, res) => {
       specialInstructions,
     } = req.body
 
+    // Clean and validate menu item IDs
+    const sanitizedItems = items.map(item => {
+      // Remove any non-alphanumeric characters from menuItemId to prevent issues with "[]" or other invalid characters
+      const sanitizedMenuItemId = item.menuItemId.replace(/[^a-zA-Z0-9]/g, "");
+      
+      return {
+        ...item,
+        menuItemId: sanitizedMenuItemId
+      };
+    });
+
     // Create new order
     const order = new Order({
       customerId: req.user.id,
       restaurantId,
-      items,
+      items: sanitizedItems,
       subtotal,
       tax,
       deliveryFee,
@@ -166,7 +177,7 @@ exports.getOrdersByCustomer = async (req, res) => {
 exports.getOrdersByRestaurant = async (req, res) => {
   try {
     const { restaurantId } = req.params
-    const { status, page = 1, limit = 10 } = req.query
+    const { status, page = 1, limit = 100 } = req.query
 
     // Check if user has permission to view these orders
     if (req.user.role !== "admin" && req.user.role !== "restaurant") {
@@ -216,21 +227,36 @@ exports.getOrdersByDeliveryPerson = async (req, res) => {
     const { status, page = 1, limit = 10 } = req.query
 
     // Check if user has permission to view these orders
-    if (req.user.role !== "admin" && req.user.role !== "delivery" && req.user.id !== deliveryPersonId) {
+    if (req.user.role !== "admin" && req.user.role !== "delivery") {
       return res.status(403).json({ message: "Not authorized to view these orders" })
+    }
+
+    // If delivery personnel user, check if they are accessing their own orders
+    if (req.user.role === "delivery" && req.user.id !== deliveryPersonId) {
+      return res.status(403).json({ message: "Not authorized to view other delivery personnel orders" })
     }
 
     // Build query
     const query = { deliveryPersonId }
+    
+    // Filter by status if provided, otherwise include all valid delivery statuses
     if (status) {
       query.status = status
+    } else {
+      // Include orders that are in delivery-related statuses
+      query.status = { 
+        $in: ["out_for_delivery", "picked_up", "delivered", "ready_for_pickup"] 
+      }
     }
 
     // Pagination
     const skip = (Number.parseInt(page) - 1) * Number.parseInt(limit)
 
     // Get orders
-    const orders = await Order.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number.parseInt(limit))
+    const orders = await Order.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number.parseInt(limit))
 
     // Get total count
     const total = await Order.countDocuments(query)
@@ -556,14 +582,19 @@ exports.getNearbyOrders = async (req, res) => {
   try {
     const { latitude, longitude, maxDistance = 5 } = req.query;
 
+    // Validate if user is a delivery person
+    if (req.user.role !== "delivery" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only delivery personnel can access nearby orders" });
+    }
+
     // Convert to numbers
     const lat = Number(latitude);
     const lng = Number(longitude);
     const distance = Number(maxDistance);
 
-    // Find orders that are ready for pickup or waiting for delivery assignment
+    // Find orders that are ready for pickup and waiting for delivery assignment
     const orders = await Order.find({
-      status: { $in: ["ready_for_pickup"] },
+      status: "ready_for_pickup", // Only ready_for_pickup status
       deliveryPersonId: { $exists: false }, // No delivery person assigned yet
       "deliveryAddress.location": {
         $nearSphere: {
@@ -574,9 +605,17 @@ exports.getNearbyOrders = async (req, res) => {
           $maxDistance: distance * 1000, // Convert km to meters
         },
       },
-    }).sort({ createdAt: 1 }); // Oldest first
+    })
+    .select("_id customerId restaurantId items status subtotal tax deliveryFee tip total deliveryAddress estimatedDeliveryTime createdAt updatedAt")
+    .sort({ createdAt: 1 }); // Oldest first
 
-    res.status(200).json(orders);
+    // If we have restaurant IDs, we could enhance this by fetching restaurant details
+    // For now, we'll return the basic order information
+    
+    res.status(200).json({
+      count: orders.length,
+      orders: orders
+    });
   } catch (error) {
     logger.error(`Get nearby orders error: ${error.message}`);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -648,6 +687,111 @@ exports.searchOrders = async (req, res) => {
     });
   } catch (error) {
     logger.error(`Search orders error: ${error.message}`);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Accept order for delivery (for delivery personnel)
+exports.acceptOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Validate if user is a delivery person
+    if (req.user.role !== "delivery") {
+      return res.status(403).json({ message: "Only delivery personnel can accept orders" });
+    }
+    
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    
+    // Check if the order is in ready_for_pickup status
+    if (order.status !== "ready_for_pickup") {
+      return res.status(400).json({ 
+        message: `Order cannot be accepted in ${order.status} status, it must be in ready_for_pickup status`,
+      });
+    }
+    
+    // Check if order is already assigned to a delivery person
+    if (order.deliveryPersonId) {
+      return res.status(400).json({ message: "Order is already assigned to a delivery person" });
+    }
+    
+    // Update order - assign to this delivery person and update status
+    order.deliveryPersonId = req.user.id;
+    order.status = "out_for_delivery";
+    order.updatedAt = Date.now();
+    await order.save();
+    
+    // Notify delivery service about the acceptance
+    try {
+      await axios.post(
+        `${process.env.DELIVERY_SERVICE_URL}/delivery/assignments/accept`,
+        { 
+          orderId: order._id, 
+          deliveryPersonId: req.user.id 
+        },
+        {
+          headers: {
+            Authorization: req.headers.authorization,
+          },
+        }
+      );
+    } catch (error) {
+      logger.error(`Failed to notify delivery service: ${error.message}`);
+      // Continue processing even if notification fails
+    }
+    
+    res.status(200).json({
+      message: "Order accepted successfully",
+      order,
+    });
+  } catch (error) {
+    logger.error(`Accept order error: ${error.message}`);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get all ready for pickup orders (for delivery personnel)
+exports.getReadyForPickupOrders = async (req, res) => {
+  try {
+    // Validate if user is a delivery person
+    if (req.user.role !== "delivery" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only delivery personnel can access ready for pickup orders" });
+    }
+
+    const { page = 1, limit = 10 } = req.query;
+    
+    // Pagination
+    const skip = (Number.parseInt(page) - 1) * Number.parseInt(limit);
+
+    // Find all orders that are ready for pickup and don't have a delivery person assigned
+    const query = {
+      status: "ready_for_pickup",
+      deliveryPersonId: { $exists: false } // No delivery person assigned yet
+    };
+
+    const orders = await Order.find(query)
+      .select("_id customerId restaurantId items status subtotal tax deliveryFee tip total deliveryAddress estimatedDeliveryTime createdAt updatedAt")
+      .sort({ createdAt: 1 }) // Oldest first
+      .skip(skip)
+      .limit(Number.parseInt(limit));
+    
+    // Get total count
+    const total = await Order.countDocuments(query);
+    
+    res.status(200).json({
+      orders,
+      pagination: {
+        total,
+        page: Number.parseInt(page),
+        limit: Number.parseInt(limit),
+        pages: Math.ceil(total / Number.parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    logger.error(`Get ready for pickup orders error: ${error.message}`);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };

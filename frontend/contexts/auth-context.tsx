@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { authApi, User, UserRole } from "@/lib/api";
+import { authApi, restaurantApi, deliveryApi, User, UserRole } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
@@ -19,6 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   hasRole: (role: UserRole) => boolean;
+  checkProfileCompletion: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -42,6 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Validate token with backend
           try {
             await authApi.getCurrentUser();
+
+            // Check if user needs to complete profile setup
+            if (
+              parsedUser.role === "restaurant" ||
+              parsedUser.role === "delivery"
+            ) {
+              const isComplete = await checkProfileCompletion();
+              if (!isComplete) {
+                redirectToSetupPage(parsedUser.role);
+              }
+            }
           } catch (error) {
             // If token is invalid, clear user data
             localStorage.removeItem("user");
@@ -65,6 +77,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Role check function
   const hasRole = (role: UserRole): boolean => {
     return user?.role === role;
+  };
+
+  // Function to check if user profile is complete
+  const checkProfileCompletion = async (): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      if (user.role === "restaurant") {
+        // Check if restaurant profile exists
+        const response = await restaurantApi.getRestaurantByOwnerId("me");
+        return !!response.data.restaurant;
+      } else if (user.role === "delivery") {
+        // Check if delivery personnel profile exists
+        const response = await deliveryApi.getDeliveryPersonnelProfile();
+        return (
+          !!response.data && !!response.data.vehicleType // Using vehicleInfo as per the DeliveryPersonnel type
+        );
+      }
+      return true; // For other roles, consider profile complete
+    } catch (error) {
+      console.error("Profile completion check failed:", error);
+      return false;
+    }
+  };
+
+  // Helper function to redirect user to setup page based on role
+  const redirectToSetupPage = (role: UserRole): void => {
+    if (role === "restaurant") {
+      router.push("/restaurant/setup");
+    } else if (role === "delivery") {
+      router.push("/delivery/setup");
+    }
   };
 
   // Register function
@@ -100,8 +144,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Your account has been created successfully!",
       });
 
-      // Redirect based on role
-      redirectBasedOnRole(role);
+      // For restaurant and delivery roles, redirect to setup page
+      if (role === "restaurant" || role === "delivery") {
+        redirectToSetupPage(role);
+      } else {
+        // For other roles, use regular redirection
+        redirectBasedOnRole(role);
+      }
     } catch (error: any) {
       console.error("Registration failed:", error);
 
@@ -129,17 +178,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ): Promise<void> => {
     setIsLoading(true);
     try {
-      // Add debugging
-      console.log("Attempting login with:", { email, password, role });
-
       // Create the credentials object
       const credentials = { email, password, role };
-      console.log("Login credentials:", credentials);
 
       // Send login request with explicit content type header
       const response = await authApi.login(credentials);
-      console.log("Login response received:", response);
-
       const { token, user } = response.data;
 
       // Save user data and token
@@ -152,10 +195,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: `Welcome back, ${user.name}!`,
       });
 
-      // Redirect based on role
-      redirectBasedOnRole(user.role);
+      // Check if user needs to complete profile setup
+      if (
+        (user.role === "restaurant" || user.role === "delivery") &&
+        !(await checkProfileCompletion())
+      ) {
+        redirectToSetupPage(user.role);
+      } else {
+        // Otherwise, use regular redirection
+        redirectBasedOnRole(user.role);
+      }
     } catch (error: any) {
-      console.error("Login failed - Full error:", error);
+      console.error("Login failed:", error);
 
       const errorMessage =
         error.response?.data?.message ||
@@ -204,6 +255,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated,
         hasRole,
+        checkProfileCompletion,
       }}
     >
       {children}

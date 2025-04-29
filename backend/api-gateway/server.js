@@ -178,9 +178,31 @@ app.use(
 );
 
 // Restaurant service routes (auth required)
-app.use('/restaurants', authenticate, createProxyMiddleware(
-  createProxyConfig(serviceUrls.restaurant)
-));
+app.use(['/restaurants', '/menus'], authenticate, createProxyMiddleware({
+  ...createProxyConfig(serviceUrls.restaurant),
+  pathRewrite: {
+    '^/restaurants': '/restaurants',
+    '^/menus': '/menus'
+  },
+  onProxyReq: (proxyReq, req, res) => {
+    logger.info(`Proxying request to Restaurant Service: ${req.method} ${req.originalUrl}`);
+    
+    // Add user info to the proxied request headers if authenticated
+    if (req.user) {
+      proxyReq.setHeader('X-User-Id', req.user.id || req.user._id || '');
+      proxyReq.setHeader('X-User-Role', req.user.role || '');
+    }
+    
+    // If there's a JSON body, we need to rewrite it
+    if (req.body && Object.keys(req.body).length > 0 && 
+        req.headers['content-type']?.includes('application/json')) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  }
+}));
 
 // Order and Payment service routes (auth required)
 app.use('/orders', authenticate, createProxyMiddleware({
